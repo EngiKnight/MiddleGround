@@ -9,6 +9,10 @@ app.get("/login.html", (req, res, next) => {
     next();
 });
 
+app.get("/API Test/api.html", (req, res, next) => {
+    console.log("Loading API test page");
+    next();
+});
 
 app.use(express.static("public"));
 
