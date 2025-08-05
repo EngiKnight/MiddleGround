@@ -1,25 +1,17 @@
 const express = require("express");
 const session = require("express-session");
-const mongoose = require("mongoose");
 require("dotenv").config();
 
 const app = express();
 const port = 3000;
 const hostname = "localhost";
 
-// ===== MongoDB Connection =====
-mongoose.connect(process.env.MONGO_URI, { 
-    useNewUrlParser: true, 
-    useUnifiedTopology: true 
-}).then(() => console.log("MongoDB connected"))
-.catch(err => console.error("MongoDB connection error:", err));
-
 // ===== Middleware =====
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
 app.use(session({
-    secret: process.env.SESSION_SECRET,
+    secret: process.env.SESSION_SECRET || "defaultSecret",
     resave: false,
     saveUninitialized: false,
     cookie: { secure: false }
@@ -29,6 +21,7 @@ app.use(session({
 const authRoutes = require('./auth');
 app.use('/auth', authRoutes);
 
+// ===== Original Routes =====
 app.get("/login.html", (req, res, next) => {
     console.log("log in");
     next();

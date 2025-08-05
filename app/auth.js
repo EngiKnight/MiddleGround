@@ -1,6 +1,6 @@
 const express = require('express');
 const bcrypt = require('bcrypt');
-const User = require('./models/user');
+const pool = require('./db');
 const router = express.Router();
 
 // Registration
@@ -11,24 +11,42 @@ router.post('/register', async (req, res) => {
     }
     const hashedPassword = await bcrypt.hash(password, 10);
     try {
-        const newUser = new User({ username, password: hashedPassword });
-        await newUser.save();
+        await pool.query(
+            'INSERT INTO users (username, password) VALUES ($1, $2)',
+            [username, hashedPassword]
+        );
         req.session.user = username;
         res.json({ success: true, message: "Registration successful" });
     } catch (err) {
-        res.status(400).json({ error: "Username already exists" });
+        if (err.code === '23505') {
+            res.status(400).json({ error: "Username already exists" });
+        } else {
+            console.error(err);
+            res.status(500).json({ error: "Database error" });
+        }
     }
 });
 
 // Login
 router.post('/login', async (req, res) => {
     const { username, password } = req.body;
-    const user = await User.findOne({ username });
-    if (!user) return res.status(400).json({ error: "Invalid credentials" });
-    const validPassword = await bcrypt.compare(password, user.password);
-    if (!validPassword) return res.status(400).json({ error: "Invalid credentials" });
-    req.session.user = username;
-    res.json({ success: true, message: "Login successful" });
+    try {
+        const result = await pool.query(
+            'SELECT * FROM users WHERE username = $1',
+            [username]
+        );
+        const user = result.rows[0];
+        if (!user) return res.status(400).json({ error: "Invalid credentials" });
+
+        const validPassword = await bcrypt.compare(password, user.password);
+        if (!validPassword) return res.status(400).json({ error: "Invalid credentials" });
+
+        req.session.user = username;
+        res.json({ success: true, message: "Login successful" });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: "Database error" });
+    }
 });
 
 // Logout
