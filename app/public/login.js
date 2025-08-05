@@ -38,7 +38,6 @@ document.getElementById('loginForm').addEventListener('submit', async function(e
         displayMessage(messageDiv, 'Network error. Please try again.', 'error');
         console.error('Error:', error);
     } finally {
-        // Re-enable submit button
         submitButton.disabled = false;
         submitButton.textContent = 'Login';
     }

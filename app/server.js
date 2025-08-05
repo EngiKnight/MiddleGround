@@ -1,6 +1,6 @@
 const express = require("express");
 const { Pool } = require("pg");
-const bcrypt = require("bcrypt");
+const bcryptjs = require("bcryptjs");
 const app = express();
 
 let env = require("../env.json");
@@ -63,7 +63,7 @@ app.post("/api/register", async (req, res) => {
         }
 
         const saltRounds = 12;
-        const passwordHash = await bcrypt.hash(pwd, saltRounds);
+        const passwordHash = await bcryptjs.hash(pwd, saltRounds);
 
         const result = await pool.query(
             'INSERT INTO users (first_name, last_name, email, password_hash) VALUES ($1, $2, $3, $4) RETURNING id, first_name, last_name, email',
