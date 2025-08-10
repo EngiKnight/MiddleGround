@@ -7,39 +7,23 @@
       content="width=device-width, initial-scale=1.0"
     />
     <title>API test</title>
-    <style>
-      table {
-        border-collapse: collapse;
-        padding: 5px;
-      }
-      th {
-        font-weight: bold;
-        border: 1px solid black;
-      }
-      td {
-        padding: 5px;
-      }
-      #map {
-        width: 30rem;
-        height: 30rem;
-      }
-    </style>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-          crossorigin=""/>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-            integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-            crossorigin=""></script>
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+      crossorigin=""
+    />
+    <link
+      rel="stylesheet"
+      href="api.css"
+    />
+    <script
+      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+      crossorigin=""
+    ></script>
   </head>
   <body>
-    <h1>Allow location access via the browser</h1>
-    <button id="getLoc">Get Location</button>
-    <p>Latitude: </p>
-    <p id="browserLat"></p>
-    <p>Longitude: </p>
-    <p id="browserLon"></p>
-    <p>Current Location: </p>
-    <p id="browserLoc"></p>
     <h1>Enter an address to search</h1>
     <label for="search">Search: </label>
     <input
@@ -57,24 +41,13 @@
       <tbody id="tbody"></tbody>
     </table>
     <h1>Enter latitude and longitude to search</h1>
-    <label for="lat">Latitude: </label>
-    <input
-            type="text"
-            id="lat"
-    />
-    <label for="lon">Longitude: </label>
-    <input
-            type="text"
-            id="lon"
-    />
-    <button id="submitCoords">Submit</button>
     <button id="generateMap">Generate Map</button>
     <p id="coordsCode"></p>
     <p id="coordsMsg"></p>
-    <p>Location:</p>
     <p id="location"></p>
-    <div id="mapContainer">
-    </div>
+    <div id="mapContainer"></div>
+    <p id="markerLatLng">Marker Position:</p>
+    <button id="updateLocation">Update Location</button>
   </body>
   <script src="api.js"></script>
 </html>

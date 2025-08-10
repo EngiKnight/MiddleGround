@@ -1,0 +1,15 @@
+table {
+  border-collapse: collapse;
+  padding: 5px;
+}
+th {
+  font-weight: bold;
+  border: 1px solid black;
+}
+td {
+  padding: 5px;
+}
+#map {
+  width: 30rem;
+  height: 30rem;
+}

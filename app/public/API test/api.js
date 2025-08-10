@@ -2,9 +2,9 @@
 // DECLARATIONS
 // Buttons
 let getLocButton = document.getElementById("getLoc");
-let coordsButton = document.getElementById("submitCoords");
 let searchButton = document.getElementById("submitAddress");
 let genMapButton = document.getElementById("generateMap");
+let updateLocation = document.getElementById("updateLocation");
 
 // Browser geolocation display elements
 let browserLoc = document.getElementById("browserLoc");
@@ -12,8 +12,6 @@ let browserLat = document.getElementById("browserLat");
 let browserLon = document.getElementById("browserLon");
 
 // revSearch input and display elements
-let latitude = document.getElementById("lat");
-let longitude = document.getElementById("lon");
 let loc = document.getElementById("location");
 let coordsCode = document.getElementById("coordsCode");
 let coordsMessage = document.getElementById("coordsMsg");
@@ -27,21 +25,40 @@ let searchMessage = document.getElementById("searchMsg");
 // Leaflet map div
 let mapContainer = document.getElementById("mapContainer");
 
+// Marker Coords
+let markerCoords = document.getElementById("markerLatLng");
+
 // URLs for access to Nonatim API
 const revURL = "https://nominatim.openstreetmap.org/reverse?format=jsonv2";
 const searchURL = "https://nominatim.openstreetmap.org/search?format=jsonv2";
+
+// Global Variables
+let currentMarker = null;
+let currentLat = null;
+let currentLon = null;
 
 // FUNCTIONS
 // Browser geolocation functions (direct DOM manipulation, alter to need)
 function getLocation() {
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(
-        browserGeoSuccess,
-        browserGeoError
+      function (position) {
+        currentLat = position.coords.latitude;
+        currentLon = position.coords.longitude;
+        browserGeoSuccess(position);
+      },
+      function (error) {
+        browserGeoError();
+        console.error("Geolocation error:", error);
+        alert(
+          "Unable to get your location. Please check your browser permissions."
+        );
+      }
     );
   } else {
     browserLoc.textContent =
-        "Error: Geolocation is not supported by this browser.";
+      "Error: Geolocation is not supported by this browser.";
+    alert("Geolocation is not supported by this browser.");
   }
 }
 
@@ -50,27 +67,31 @@ function browserGeoSuccess(position) {
   let lon = position.coords.longitude;
 
   revSearch(lat, lon)
-      .then((result) => {
-        if (result) {
+    .then((result) => {
+      if (result) {
+        if (browserLoc) {
           browserLoc.textContent = result.display_name;
         }
-        if (result.error) {
-          console.log(result);
-          let message = "API Error Message: ";
-          if (result.error.message) {
-            message += result.error.message;
-          } else {
-            message = result.error;
-          }
-          browserLoc.textContent = message;
+      }
+      if (result.error) {
+        console.log(result);
+        let message = "API Error Message: ";
+        if (result.error.message) {
+          message += result.error.message;
+        } else {
+          message = result.error;
         }
-      })
-      .catch((error) => {
-        console.log(error);
-        browserLoc.textContent = "ERROR: Check console for info";
-      });
-  browserLat.textContent = `${lat}`;
-  browserLon.textContent = `${lon}`;
+        browserLoc.textContent = message;
+      }
+    })
+    .catch((error) => {
+      console.log(error);
+      browserLoc.textContent = "ERROR: Check console for info";
+    });
+  if (browserLat && browserLon) {
+    browserLat.textContent = `${lat}`;
+    browserLon.textContent = `${lon}`;
+  }
 }
 
 function browserGeoError() {
@@ -133,15 +154,27 @@ function freeSearch(query) {
     });
 }
 
+// genMap creates a leaflet map centered at given coordinates
+function genMap(lat, lon) {
+  while (mapContainer.firstChild) {
+    mapContainer.removeChild(mapContainer.firstChild);
+  }
+  let newMap = document.createElement("div");
+  newMap.id = "map";
+  mapContainer.append(newMap);
+  let map = L.map("map").setView([lat, lon], 13);
+  L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    maxZoom: 19,
+    attribution:
+      '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+  }).addTo(map);
+  return map;
+}
+
+// Initial get location when first opened
+getLocation();
+
 // Button clicks
-getLocButton.addEventListener("click", () => {
-  browserLoc.textContent = "Getting location...";
-  browserLat.textContent = "";
-  browserLon.textContent = "";
-
-  getLocation();
-});
-
 searchButton.addEventListener("click", () => {
   let searchText = search.value;
 
@@ -153,62 +186,70 @@ searchButton.addEventListener("click", () => {
 
   // .then() to handle result
   freeSearch(searchText)
-      .then((result) => {
-        if (result) {
-          for (let i = 0; i < result.length; i++) {
-            let tr = document.createElement("tr");
-            let resultNum = document.createElement("td");
-            let resultLoc = document.createElement("td");
-            let lat = document.createElement("td");
-            let lon = document.createElement("td");
+    .then((result) => {
+      if (result) {
+        for (let i = 0; i < result.length; i++) {
+          let tr = document.createElement("tr");
+          let resultNum = document.createElement("td");
+          let resultLoc = document.createElement("td");
+          let lat = document.createElement("td");
+          let lon = document.createElement("td");
 
-            resultNum.textContent = `${i + 1}`;
-            resultLoc.textContent = result[i].display_name;
-            lat.textContent = result[i].lat;
-            lon.textContent = result[i].lon;
+          resultNum.textContent = `${i + 1}`;
+          resultLoc.textContent = result[i].display_name;
+          lat.textContent = result[i].lat;
+          lon.textContent = result[i].lon;
 
-            tr.append(resultNum);
-            tr.append(resultLoc);
-            tr.append(lat);
-            tr.append(lon);
-            searchTable.append(tr);
-          }
-        }
-        if (result.error) {
-          let code = "Error Code: ";
-          let message = "Error Message: ";
-          if (result.error.code || result.error.message) {
-            code += result.error.code;
-            message += result.error.message;
-          } else {
-            code += "400";
-            message = result.error;
-          }
-          searchCode.textContent = code;
-          searchMessage.textContent = message;
-        }
+          tr.append(resultNum);
+          tr.append(resultLoc);
+          tr.append(lat);
+          tr.append(lon);
 
-        if (result.length <= 0) {
-          searchCode.textContent = "Error Code: 400";
-          searchMessage.textContent =
-              "Error Message: No results returned, please try again with a different search";
+          tr.addEventListener("click", () => {
+            currentLat = result[i].lat;
+            currentLon = result[i].lon;
+          });
+          searchTable.append(tr);
         }
-      })
-      .catch((error) => {
-        console.log(error);
-        searchMessage.textContent = "ERROR: Check console for info";
-      });
+      }
+      if (result.error) {
+        let code = "Error Code: ";
+        let message = "Error Message: ";
+        if (result.error.code || result.error.message) {
+          code += result.error.code;
+          message += result.error.message;
+        } else {
+          code += "400";
+          message = result.error;
+        }
+        searchCode.textContent = code;
+        searchMessage.textContent = message;
+      }
+
+      if (result.length <= 0) {
+        searchCode.textContent = "Error Code: 400";
+        searchMessage.textContent =
+          "Error Message: No results returned, please try again with a different search";
+      }
+    })
+    .catch((error) => {
+      console.log(error);
+      searchMessage.textContent = "ERROR: Check console for info";
+    });
 });
 
-coordsButton.addEventListener("click", () => {
-  loc.textContent = "";
-  coordsCode.textContent = "";
-  coordsMessage.textContent = "";
-  let latVal = latitude.value;
-  let lonVal = longitude.value;
+genMapButton.addEventListener("click", () => {
+  if (currentLat === null || currentLon === null) {
+    alert(
+      "Please allow the browser access to your location or search and select a location and try again"
+    );
+    getLocation();
+  }
 
-  // .then() to handle result
-  revSearch(latVal, lonVal)
+  console.log("Latitude:", currentLat);
+  console.log("Longitude:", currentLon);
+
+  revSearch(currentLat, currentLon)
     .then((result) => {
       if (result) {
         loc.textContent = result.display_name;
@@ -232,21 +273,66 @@ coordsButton.addEventListener("click", () => {
       console.log(error);
       coordsMessage.textContent = "ERROR: Check console for info";
     });
+
+  try {
+    let map = genMap(currentLat, currentLon);
+    currentMarker = L.marker([currentLat, currentLon], {
+      draggable: true,
+    }).addTo(map);
+    markerCoords.textContent =
+      "Marker Position: " + currentLat + "; " + currentLon;
+
+    currentMarker.on("drag", function (e) {
+      let coord = e.latlng;
+      let lat = coord.lat;
+      let lng = coord.lng;
+      markerCoords.textContent = "Marker Position: " + lat + "; " + lng;
+    });
+
+    currentMarker.on("moveend", function (e) {
+      let coord = e.target.getLatLng();
+      let lat = coord.lat;
+      let lng = coord.lng;
+      markerCoords.textContent = "Marker Position: " + lat + "; " + lng;
+    });
+  } catch (error) {
+    console.error("Map generation error:", error);
+    alert("Error generating map. Please try again.");
+  }
 });
 
-genMapButton.addEventListener("click", () => {
-  while (mapContainer.firstChild) {
-    mapContainer.removeChild(mapContainer.firstChild);
-  };
-  let newMap = document.createElement("div");
-  newMap.id = "map";
-  mapContainer.append(newMap);
-  let latVal = latitude.value;
-  let lonVal = longitude.value;
-  let map = L.map('map').setView([latVal, lonVal], 13)
-  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 19,
-    attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-  }).addTo(map);
-  let marker = L.marker([latVal, lonVal]).addTo(map);
+updateLocation.addEventListener("click", () => {
+  if (!currentMarker) {
+    coordsMessage.textContent = "Please generate a map first";
+    return;
+  }
+
+  let markerPosition = currentMarker.getLatLng();
+  currentLat = markerPosition.lat;
+  currentLon = markerPosition.lng;
+
+  revSearch(currentLat, currentLon)
+    .then((result) => {
+      if (result) {
+        loc.textContent = result.display_name;
+      }
+
+      if (result.error) {
+        let code = "Error Code: ";
+        let message = "Error Message: ";
+        if (result.error.code || result.error.message) {
+          code += result.error.code;
+          message += result.error.message;
+        } else {
+          code += "400";
+          message = result.error;
+        }
+        coordsCode.textContent = code;
+        coordsMessage.textContent = message;
+      }
+    })
+    .catch((error) => {
+      console.log(error);
+      coordsMessage.textContent = "ERROR: Check console for info";
+    });
 });
