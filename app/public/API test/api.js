@@ -21,7 +21,8 @@ let searchResults = document.getElementById("searchResultsContainer");
 let mapContainer = document.getElementById("mapContainer");
 
 // Marker Coords
-let markerCoords = document.getElementById("markerLatLng");
+let markerLat = document.getElementById("markerLat");
+let markerLon = document.getElementById("markerLon");
 
 // URLs for access to Nonatim API
 const revURL = "https://nominatim.openstreetmap.org/reverse?format=jsonv2";
@@ -33,7 +34,7 @@ let currentLat = null;
 let currentLon = null;
 
 // FUNCTIONS
-// Browser geolocation functions (direct DOM manipulation, alter to need)
+// Browser geolocation functions
 function getLocation() {
   return new Promise((resolve, reject) => {
     if (navigator.geolocation) {
@@ -167,21 +168,23 @@ function genMap(lat, lon) {
   currentMarker = L.marker([currentLat, currentLon], {
     draggable: true,
   }).addTo(map);
-  markerCoords.textContent =
-    "Marker Position: " + currentLat + "; " + currentLon;
+  markerLat.textContent = currentLat;
+  markerLon.textContent = currentLon;
 
   currentMarker.on("drag", function (e) {
     let coord = e.latlng;
     let lat = coord.lat;
     let lng = coord.lng;
-    markerCoords.textContent = "Marker Position: " + lat + "; " + lng;
+    markerLat.textContent = lat;
+    markerLon.textContent = lng;
   });
 
   currentMarker.on("moveend", function (e) {
     let coord = e.target.getLatLng();
     let lat = coord.lat;
     let lng = coord.lng;
-    markerCoords.textContent = "Marker Position: " + lat + "; " + lng;
+    markerLat.textContent = lat;
+    markerLon.textContent = lng;
     let markerPosition = currentMarker.getLatLng();
     currentLat = markerPosition.lat;
     currentLon = markerPosition.lng;
