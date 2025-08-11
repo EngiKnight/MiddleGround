@@ -24,30 +24,26 @@
     ></script>
   </head>
   <body>
-    <h1>Enter an address to search</h1>
-    <label for="search">Search: </label>
-    <input
-      type="text"
-      id="search"
-    />
-    <button id="submitAddress">Submit</button>
-    <p id="searchCode"></p>
-    <p id="searchMsg"></p>
-    <table>
-      <th>Result</th>
-      <th>Result Location</th>
-      <th>Latitude</th>
-      <th>Longitude</th>
-      <tbody id="tbody"></tbody>
-    </table>
-    <h1>Enter latitude and longitude to search</h1>
-    <button id="generateMap">Generate Map</button>
-    <p id="coordsCode"></p>
-    <p id="coordsMsg"></p>
-    <p id="location"></p>
+    <div id="headingContainer">
+      <h1>Your Location</h1>
+      <p id="location"></p>
+      <p id="markerLatLng">Marker Position:</p>
+    </div>
     <div id="mapContainer"></div>
-    <p id="markerLatLng">Marker Position:</p>
-    <button id="updateLocation">Update Location</button>
+    <div id="searchContainer">
+      <label
+        id="searchLabel"
+        for="search"
+        >Search:
+      </label>
+      <input
+        type="text"
+        id="search"
+      />
+      <button id="submitAddress">Submit</button>
+      <p id="searchMsg"></p>
+    </div>
+    <div id="searchResultsContainer"></div>
   </body>
   <script src="api.js"></script>
 </html>

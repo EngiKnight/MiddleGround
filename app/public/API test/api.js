@@ -3,8 +3,6 @@
 // Buttons
 let getLocButton = document.getElementById("getLoc");
 let searchButton = document.getElementById("submitAddress");
-let genMapButton = document.getElementById("generateMap");
-let updateLocation = document.getElementById("updateLocation");
 
 // Browser geolocation display elements
 let browserLoc = document.getElementById("browserLoc");
@@ -13,14 +11,11 @@ let browserLon = document.getElementById("browserLon");
 
 // revSearch input and display elements
 let loc = document.getElementById("location");
-let coordsCode = document.getElementById("coordsCode");
-let coordsMessage = document.getElementById("coordsMsg");
 
 // freeSearch input and display elements
 let search = document.getElementById("search");
-let searchTable = document.getElementById("tbody");
-let searchCode = document.getElementById("searchCode");
 let searchMessage = document.getElementById("searchMsg");
+let searchResults = document.getElementById("searchResultsContainer");
 
 // Leaflet map div
 let mapContainer = document.getElementById("mapContainer");
@@ -40,26 +35,27 @@ let currentLon = null;
 // FUNCTIONS
 // Browser geolocation functions (direct DOM manipulation, alter to need)
 function getLocation() {
-  if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(
-      function (position) {
-        currentLat = position.coords.latitude;
-        currentLon = position.coords.longitude;
-        browserGeoSuccess(position);
-      },
-      function (error) {
-        browserGeoError();
-        console.error("Geolocation error:", error);
-        alert(
-          "Unable to get your location. Please check your browser permissions."
-        );
-      }
-    );
-  } else {
-    browserLoc.textContent =
-      "Error: Geolocation is not supported by this browser.";
-    alert("Geolocation is not supported by this browser.");
-  }
+  return new Promise((resolve, reject) => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        function (position) {
+          currentLat = position.coords.latitude;
+          currentLon = position.coords.longitude;
+          browserGeoSuccess(position);
+          resolve({ lat: currentLat, lon: currentLon });
+        },
+        function (error) {
+          browserGeoError();
+          console.error("Geolocation error:", error);
+          reject(error);
+        }
+      );
+    } else {
+      const errorMsg = "Geolocation is not supported by this browser.";
+      browserLoc.textContent = "Error: " + errorMsg;
+      reject(new Error(errorMsg));
+    }
+  });
 }
 
 function browserGeoSuccess(position) {
@@ -95,7 +91,7 @@ function browserGeoSuccess(position) {
 }
 
 function browserGeoError() {
-  browserLoc.textContent = "Browser geolocation error, no position available.";
+  console.error("Error with browser geolocation.");
 }
 
 /*
@@ -168,20 +164,81 @@ function genMap(lat, lon) {
     attribution:
       '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
   }).addTo(map);
-  return map;
+  currentMarker = L.marker([currentLat, currentLon], {
+    draggable: true,
+  }).addTo(map);
+  markerCoords.textContent =
+    "Marker Position: " + currentLat + "; " + currentLon;
+
+  currentMarker.on("drag", function (e) {
+    let coord = e.latlng;
+    let lat = coord.lat;
+    let lng = coord.lng;
+    markerCoords.textContent = "Marker Position: " + lat + "; " + lng;
+  });
+
+  currentMarker.on("moveend", function (e) {
+    let coord = e.target.getLatLng();
+    let lat = coord.lat;
+    let lng = coord.lng;
+    markerCoords.textContent = "Marker Position: " + lat + "; " + lng;
+    let markerPosition = currentMarker.getLatLng();
+    currentLat = markerPosition.lat;
+    currentLon = markerPosition.lng;
+    updateLoc(currentLat, currentLon);
+  });
 }
 
-// Initial get location when first opened
-getLocation();
+// updateLoc updates the currently displayed location above the map (usually called with currentLat and currentLon as args)
+function updateLoc(lat, lon) {
+  loc.textContent = "Getting location...";
+  revSearch(currentLat, currentLon)
+    .then((result) => {
+      if (result) {
+        loc.textContent = result.display_name;
+      }
+      if (result.error) {
+        console.log(result.error);
+      }
+    })
+    .catch((error) => {
+      console.log(error);
+    });
+}
+
+// initialize the page after getting coordinates
+async function initializeWithLocation() {
+  try {
+    updateLoc(currentLat, currentLon);
+    genMap(currentLat, currentLon);
+  } catch (error) {
+    console.error("Failed to initialize with location:", error);
+  }
+}
+
+// Try to get location on page load
+async function tryAutoLocation() {
+  try {
+    await getLocation();
+    await initializeWithLocation();
+  } catch (error) {
+    console.log("Auto-location failed:", error);
+    alert(
+      "Browser auto-location failed. Please manually search for a location."
+    );
+  }
+}
+
+// attempt to get browser location
+tryAutoLocation();
 
 // Button clicks
 searchButton.addEventListener("click", () => {
   let searchText = search.value;
+  searchMessage.textContent = "Getting results...";
 
-  searchCode.textContent = "";
-  searchMessage.textContent = "";
-  while (searchTable.firstChild) {
-    searchTable.removeChild(searchTable.firstChild);
+  while (searchResults.firstChild) {
+    searchResults.removeChild(searchResults.firstChild);
   }
 
   // .then() to handle result
@@ -189,150 +246,41 @@ searchButton.addEventListener("click", () => {
     .then((result) => {
       if (result) {
         for (let i = 0; i < result.length; i++) {
-          let tr = document.createElement("tr");
-          let resultNum = document.createElement("td");
-          let resultLoc = document.createElement("td");
-          let lat = document.createElement("td");
-          let lon = document.createElement("td");
+          let resultButton = document.createElement("button");
+          resultButton.textContent = result[i].display_name;
 
-          resultNum.textContent = `${i + 1}`;
-          resultLoc.textContent = result[i].display_name;
-          lat.textContent = result[i].lat;
-          lon.textContent = result[i].lon;
-
-          tr.append(resultNum);
-          tr.append(resultLoc);
-          tr.append(lat);
-          tr.append(lon);
-
-          tr.addEventListener("click", () => {
+          resultButton.addEventListener("click", async () => {
             currentLat = result[i].lat;
             currentLon = result[i].lon;
+
+            await initializeWithLocation();
+
+            while (searchResults.firstChild) {
+              searchResults.removeChild(searchResults.firstChild);
+            }
           });
-          searchTable.append(tr);
+          searchMessage.textContent = "";
+          searchResults.append(resultButton);
         }
       }
       if (result.error) {
-        let code = "Error Code: ";
+        console.log(result.error);
         let message = "Error Message: ";
         if (result.error.code || result.error.message) {
-          code += result.error.code;
           message += result.error.message;
         } else {
-          code += "400";
           message = result.error;
         }
-        searchCode.textContent = code;
         searchMessage.textContent = message;
       }
 
       if (result.length <= 0) {
-        searchCode.textContent = "Error Code: 400";
         searchMessage.textContent =
-          "Error Message: No results returned, please try again with a different search";
+          "No results returned, please try again with a different search";
       }
     })
     .catch((error) => {
       console.log(error);
       searchMessage.textContent = "ERROR: Check console for info";
-    });
-});
-
-genMapButton.addEventListener("click", () => {
-  if (currentLat === null || currentLon === null) {
-    alert(
-      "Please allow the browser access to your location or search and select a location and try again"
-    );
-    getLocation();
-  }
-
-  console.log("Latitude:", currentLat);
-  console.log("Longitude:", currentLon);
-
-  revSearch(currentLat, currentLon)
-    .then((result) => {
-      if (result) {
-        loc.textContent = result.display_name;
-      }
-
-      if (result.error) {
-        let code = "Error Code: ";
-        let message = "Error Message: ";
-        if (result.error.code || result.error.message) {
-          code += result.error.code;
-          message += result.error.message;
-        } else {
-          code += "400";
-          message = result.error;
-        }
-        coordsCode.textContent = code;
-        coordsMessage.textContent = message;
-      }
-    })
-    .catch((error) => {
-      console.log(error);
-      coordsMessage.textContent = "ERROR: Check console for info";
-    });
-
-  try {
-    let map = genMap(currentLat, currentLon);
-    currentMarker = L.marker([currentLat, currentLon], {
-      draggable: true,
-    }).addTo(map);
-    markerCoords.textContent =
-      "Marker Position: " + currentLat + "; " + currentLon;
-
-    currentMarker.on("drag", function (e) {
-      let coord = e.latlng;
-      let lat = coord.lat;
-      let lng = coord.lng;
-      markerCoords.textContent = "Marker Position: " + lat + "; " + lng;
-    });
-
-    currentMarker.on("moveend", function (e) {
-      let coord = e.target.getLatLng();
-      let lat = coord.lat;
-      let lng = coord.lng;
-      markerCoords.textContent = "Marker Position: " + lat + "; " + lng;
-    });
-  } catch (error) {
-    console.error("Map generation error:", error);
-    alert("Error generating map. Please try again.");
-  }
-});
-
-updateLocation.addEventListener("click", () => {
-  if (!currentMarker) {
-    coordsMessage.textContent = "Please generate a map first";
-    return;
-  }
-
-  let markerPosition = currentMarker.getLatLng();
-  currentLat = markerPosition.lat;
-  currentLon = markerPosition.lng;
-
-  revSearch(currentLat, currentLon)
-    .then((result) => {
-      if (result) {
-        loc.textContent = result.display_name;
-      }
-
-      if (result.error) {
-        let code = "Error Code: ";
-        let message = "Error Message: ";
-        if (result.error.code || result.error.message) {
-          code += result.error.code;
-          message += result.error.message;
-        } else {
-          code += "400";
-          message = result.error;
-        }
-        coordsCode.textContent = code;
-        coordsMessage.textContent = message;
-      }
-    })
-    .catch((error) => {
-      console.log(error);
-      coordsMessage.textContent = "ERROR: Check console for info";
     });
 });
