@@ -197,14 +197,44 @@ function updateLoc(lat, lon) {
   loc.textContent = "Getting location...";
   revSearch(currentLat, currentLon)
     .then((result) => {
-      if (result) {
-        loc.textContent = result.display_name;
+      if (!result.address) {
+        loc.textContent = "";
+        return;
       }
-      if (result.error) {
-        console.log(result.error);
-      }
+
+      const {
+        amenity = "",
+        house_number = "",
+        road = "",
+        suburb,
+        neighbourhood = suburb ?? "",
+        town,
+        county,
+        municipality,
+        city = town ?? county ?? municipality ?? "",
+        region,
+        state = region ?? "",
+        postcode = "",
+        country = "",
+      } = result.address;
+
+      const formattedAddress = [
+        amenity,
+        house_number,
+        road,
+        neighbourhood,
+        city,
+        result.address["ISO3166-2-lvl4"].split("-")[1] ?? state,
+        postcode,
+        country,
+      ]
+        .filter(Boolean)
+        .join(", ");
+
+      loc.textContent = formattedAddress;
     })
     .catch((error) => {
+      loc.textContent = "";
       console.log(error);
     });
 }
