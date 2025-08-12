@@ -1,0 +1,50 @@
+body {
+  background-color: #212529;
+  font-family: "Varela Round", sans-serif;
+  color: #96f2d7;
+  font-size: 1rem;
+}
+#headingContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+h1 {
+  font-weight: bold;
+  font-size: 2rem;
+}
+#map {
+  width: 30rem;
+  height: 30rem;
+  margin: 2rem;
+  border-radius: 2rem;
+}
+#mapContainer {
+  display: flex;
+  justify-content: center;
+}
+#searchContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+#searchResultsContainer {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  margin: 2rem;
+}
+#searchLabel {
+  margin-right: 2rem;
+  font-size: 1.5rem;
+}
+#searchMsg {
+  margin: 0 0 0 2rem;
+}
+button {
+  background-color: #212529;
+  border: 2px solid #96f2d7;
+  border-radius: 4px;
+  color: #96f2d7;
+  font-size: 1.5rem;
+}

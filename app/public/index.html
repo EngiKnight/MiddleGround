@@ -1,67 +1,30 @@
 <!DOCTYPE html>
 <html>
-<head>
-	<meta charset="utf-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<title>Demo</title>
-	<style>
-		input, button {
-			display: block;
-			margin: 1rem 0;
-		}
-	</style>
-</head>
-<body>
-
-<p>Enter some data:</p>
-
-<input type="text" id="datum">
-
-<button id="submit">Submit</button>
-
-<p>All data:</p>
-
-<div id="data"></div>
-
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>MiddleGround</title>
+    </head>
+    <body>
+        <p>Home Page</p>
+        <a href="/API%20Test/api.html">API Test page</a>
+    <div id="auth"></div>
 <script>
-let input = document.getElementById("datum");
-let button = document.getElementById("submit");
-let div = document.getElementById("data");
-
-function populate() {
-	div.textContent = "";
-	fetch("/data").then(response => response.json()).then(body => {
-		let data = body.data;
-		if (data.length === 0) {
-			div.textContent = "No data yet"
-		} else {
-			for (let obj of data) {
-				let datumDiv = document.createElement("div")
-				datumDiv.textContent = obj.datum;
-				div.append(datumDiv);
-			}
-		}
-	});
-}
-
-button.addEventListener("click", () => {
-	fetch("/datum", {
-		method: "POST",
-		headers: {
-			"Content-Type": "application/json"
-		},
-		body: JSON.stringify({datum: input.value})
-	}).then(response => {
-		return response.json();
-	}).then(body => {
-		populate();
-	}).catch(error => {
-		console.log(error);
-	})
-});
-
-populate();
+  async function renderAuth() {
+    const res = await fetch('/api/me');
+    const data = await res.json();
+    const el = document.getElementById('auth');
+    if (data.user) {
+      el.innerHTML = '<p>Signed in as <b>' + data.user.username + '</b></p><button id="logoutBtn">Log out</button>';
+      document.getElementById('logoutBtn').onclick = async () => {
+        await fetch('/api/logout', { method: 'POST' });
+        location.reload();
+      };
+    } else {
+      el.innerHTML = '<p><a href="/login.html">Log in</a> or <a href="/signup.html">Sign up</a></p>';
+    }
+  }
+  renderAuth();
 </script>
-
 </body>
 </html>
