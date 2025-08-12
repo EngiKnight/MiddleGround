@@ -9,6 +9,7 @@ let longInput = document.getElementById("longitude");
 let venueInput = document.getElementById("venue");
 
 let submitButton = document.getElementById("submit");
+let infoDiv = document.getElementById("places");
 
 function findPlaces() {
     console.log("clicked");
@@ -24,6 +25,7 @@ function findPlaces() {
         console.log(res);
         let places = searchVenues(categoryIds[venue], res.results);
         console.log(places);
+        displayPlaces(places);
     })
     .catch(err => console.log(err));
 }
@@ -38,6 +40,18 @@ function searchVenues(venue, list) {
         }
     }
     return matches;
+}
+
+function displayPlaces(places) {
+    while (infoDiv.lastChild) {
+        infoDiv.lastChild.remove();
+    }
+
+    for (let place of places) {
+        let p = document.createElement("p");
+        p.textContent = place.name;
+        infoDiv.append(p);
+    }
 }
 
 submitButton.addEventListener("click", findPlaces);
