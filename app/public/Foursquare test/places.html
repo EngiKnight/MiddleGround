@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Find A Place!</title>
+</head>
+<body>
+
+<h1>MiddlePoint</h1>
+
+<h2>Find A Venue!</h2>
+
+<p>Please give us some information about the places you want to look for:</p>
+
+<div class="form">
+	<div>
+		<label for="venue">Venue:</label>
+		<select id="venue" name="venue">
+			<option value="">Please select your venue type</option>
+			<option value="Mini Golf">Mini Golf</option>
+			<option value="Ice Cream">Ice Cream</option>
+			<option value="Diner">Diner</option>
+		</select>
+	</div>
+    <div>
+        <label for="latitude">Latitude:</label>
+        <input type="text" id="latitude" name="latitude">
+    </div>
+    <div>
+        <label for="longitude">Longitude:</label>
+        <input type="text" id="longitude" name="longitude">
+    </div>
+	<button id="submit">Search for Places</button>
+</div>
+
+<div id="places"></div>
+
+<script src="foursquare.js"></script>
+
+</body>
+</html>

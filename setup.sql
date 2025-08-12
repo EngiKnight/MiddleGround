@@ -6,14 +6,11 @@
 DROP TABLE IF EXISTS foo;
 
 -- create whatever tables you need here
-CREATE TABLE foo (
-	id SERIAL PRIMARY KEY,
-	datum TEXT
+CREATE TABLE IF NOT EXISTS users (
+    id SERIAL PRIMARY KEY,
+    username TEXT UNIQUE NOT NULL,
+    email TEXT UNIQUE,
+    password_hash TEXT NOT NULL,
 );
-
--- dummy data
-INSERT INTO foo (datum) VALUES ('Hello this is some text');
-INSERT INTO foo (datum) VALUES ('Another sentence');
-INSERT INTO foo (datum) VALUES ('How are you?');
 
 \q
