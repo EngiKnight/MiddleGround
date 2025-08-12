@@ -127,7 +127,7 @@ app.get("/api/protected", requireAuth, (req, res) => {
   res.json({ message: `Hello, ${req.session.user.username}!` });
 });
 
-app.get("/api/places", requireAuth, (req, res) => {
+app.get("/api/places", (req, res) => {
   let lat = req.query.lat;
   let long = req.query.long;
 
