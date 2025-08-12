@@ -8,5 +8,23 @@
     <body>
         <p>Home Page</p>
         <a href="/API%20Test/api.html">API Test page</a>
-    </body>
+    <div id="auth"></div>
+<script>
+  async function renderAuth() {
+    const res = await fetch('/api/me');
+    const data = await res.json();
+    const el = document.getElementById('auth');
+    if (data.user) {
+      el.innerHTML = '<p>Signed in as <b>' + data.user.username + '</b></p><button id="logoutBtn">Log out</button>';
+      document.getElementById('logoutBtn').onclick = async () => {
+        await fetch('/api/logout', { method: 'POST' });
+        location.reload();
+      };
+    } else {
+      el.innerHTML = '<p><a href="/login.html">Log in</a> or <a href="/signup.html">Sign up</a></p>';
+    }
+  }
+  renderAuth();
+</script>
+</body>
 </html>

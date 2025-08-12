@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Login</title>
+  <title>Sign up</title>
   <style>
     body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; max-width: 420px; margin: 4rem auto; }
     form { display: grid; gap: 10px; }
@@ -16,39 +16,43 @@
 </head>
 <body>
   <div class="card">
-    <h2>Login</h2>
-    <form id="loginForm">
+    <h2>Create account</h2>
+    <form id="signupForm">
       <div class="row">
         <label>Username</label>
         <input name="username" required />
       </div>
       <div class="row">
-        <label>Password</label>
-        <input name="password" type="password" required />
+        <label>Email (optional)</label>
+        <input name="email" type="email" />
       </div>
-      <button type="submit">Log in</button>
+      <div class="row">
+        <label>Password</label>
+        <input name="password" type="password" required minlength="8" />
+      </div>
+      <button type="submit">Sign up</button>
     </form>
     <div class="msg" id="msg"></div>
-    <p>Don't have an account? <a href="/signup.html">Sign up</a></p>
+    <p>Already have an account? <a href="/login.html">Log in</a></p>
   </div>
 
   <script>
-    const form = document.getElementById('loginForm');
+    const form = document.getElementById('signupForm');
     const msg = document.getElementById('msg');
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       const data = Object.fromEntries(new FormData(form).entries());
-      msg.textContent = "Logging in...";
+      msg.textContent = "Creating account...";
       try {
-        const res = await fetch('/api/login', {
+        const res = await fetch('/api/signup', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(data)
         });
         const json = await res.json();
-        if (!res.ok) throw new Error(json.error || 'Login failed');
-        msg.textContent = 'Logged in as ' + json.user.username;
-        setTimeout(() => window.location.href = '/', 600);
+        if (!res.ok) throw new Error(json.error || 'Sign up failed');
+        msg.textContent = 'Welcome, ' + json.user.username + '! Redirecting...';
+        setTimeout(() => window.location.href = '/', 800);
       } catch (err) {
         msg.textContent = err.message;
       }
