@@ -6,6 +6,20 @@ const bcrypt = require("bcryptjs");
 const dotenv = require("dotenv");
 dotenv.config({ path: path.join(__dirname, "..", ".env") });
 
+let foursquareUrl = "https://places-api.foursquare.com/places/search";
+
+let keys = require("../env.json");
+let foursquareKey = keys.foursquare;
+
+let options = {
+    method: "GET",
+    headers: {
+        accept: "application/json",
+        "X-Places-Api-Version": "2025-06-17",
+        "Authorization": `Bearer ${foursquareKey}`
+    }
+};
+
 const { pool, query } = require("./db");
 
 const app = express();
@@ -112,6 +126,19 @@ app.get("/api/me", (req, res) => {
 app.get("/api/protected", requireAuth, (req, res) => {
   res.json({ message: `Hello, ${req.session.user.username}!` });
 });
+
+app.get("/api/places", requireAuth, (req, res) => {
+  let lat = req.query.lat;
+  let long = req.query.long;
+
+  fetch(foursquareUrl + `?ll=${lat},${long}&fields=categories,location,name`, options)
+    .then(info => info.json())
+    .then(info => {
+      //console.log(info);
+      return res.json(info);
+    })
+    .catch(err => console.log(err));
+})
 
 app.listen(port, hostname, () => {
   console.log(`Listening at: http://${hostname}:${port}`);
