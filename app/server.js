@@ -12,12 +12,12 @@ let keys = require("../env.json");
 let foursquareKey = keys.foursquare;
 
 let options = {
-    method: "GET",
-    headers: {
-        accept: "application/json",
-        "X-Places-Api-Version": "2025-06-17",
-        "Authorization": `Bearer ${foursquareKey}`
-    }
+  method: "GET",
+  headers: {
+    accept: "application/json",
+    "X-Places-Api-Version": "2025-06-17",
+    Authorization: `Bearer ${foursquareKey}`,
+  },
 };
 
 const { pool, query } = require("./db");
@@ -32,20 +32,22 @@ const hostname = process.env.HOSTNAME || "localhost";
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use(session({
-  store: new pgSession({
-    pool,
-    tableName: "session"
-  }),
-  secret: process.env.SESSION_SECRET || "dev_secret_change_me",
-  resave: false,
-  saveUninitialized: false,
-  cookie: {
-    maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
-    sameSite: "lax",
-    secure: isProd // only send cookie over HTTPS in prod
-  }
-}));
+app.use(
+  session({
+    store: new pgSession({
+      pool,
+      tableName: "session",
+    }),
+    secret: process.env.SESSION_SECRET || "dev_secret_change_me",
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+      sameSite: "lax",
+      secure: isProd, // only send cookie over HTTPS in prod
+    },
+  })
+);
 
 // Serve static files
 app.use(express.static(path.join(__dirname, "public")));
@@ -63,11 +65,15 @@ app.post("/api/signup", async (req, res) => {
   try {
     const { username, email, password } = req.body;
     if (!username || !password) {
-      return res.status(400).json({ error: "username and password are required" });
+      return res
+        .status(400)
+        .json({ error: "username and password are required" });
     }
     const pw = String(password);
     if (pw.length < 8) {
-      return res.status(400).json({ error: "password must be at least 8 characters" });
+      return res
+        .status(400)
+        .json({ error: "password must be at least 8 characters" });
     }
     const hash = await bcrypt.hash(pw, 12);
     const result = await query(
@@ -75,11 +81,17 @@ app.post("/api/signup", async (req, res) => {
       [username, email || null, hash]
     );
     const user = result.rows[0];
-    req.session.user = { id: user.id, username: user.username, email: user.email };
+    req.session.user = {
+      id: user.id,
+      username: user.username,
+      email: user.email,
+    };
     res.status(201).json({ user: req.session.user });
   } catch (err) {
     if (err && err.code === "23505") {
-      return res.status(409).json({ error: "username or email already exists" });
+      return res
+        .status(409)
+        .json({ error: "username or email already exists" });
     }
     console.error(err);
     res.status(500).json({ error: "internal server error" });
@@ -90,7 +102,9 @@ app.post("/api/login", async (req, res) => {
   try {
     const { username, password } = req.body;
     if (!username || !password) {
-      return res.status(400).json({ error: "username and password are required" });
+      return res
+        .status(400)
+        .json({ error: "username and password are required" });
     }
     const result = await query(
       "SELECT id, username, email, password_hash FROM users WHERE username = $1",
@@ -104,7 +118,11 @@ app.post("/api/login", async (req, res) => {
     if (!ok) {
       return res.status(401).json({ error: "invalid credentials" });
     }
-    req.session.user = { id: user.id, username: user.username, email: user.email };
+    req.session.user = {
+      id: user.id,
+      username: user.username,
+      email: user.email,
+    };
     res.json({ user: req.session.user });
   } catch (err) {
     console.error(err);
@@ -131,14 +149,18 @@ app.get("/api/places", (req, res) => {
   let lat = req.query.lat;
   let long = req.query.long;
 
-  fetch(foursquareUrl + `?ll=${lat},${long}&fields=categories,location,name`, options)
-    .then(info => info.json())
-    .then(info => {
+  fetch(
+    foursquareUrl +
+      `?ll=${lat},${long}&fields=categories,location,name,distance,latitude,longitude,website,tel`,
+    options
+  )
+    .then((info) => info.json())
+    .then((info) => {
       //console.log(info);
       return res.json(info);
     })
-    .catch(err => console.log(err));
-})
+    .catch((err) => console.log(err));
+});
 
 app.listen(port, hostname, () => {
   console.log(`Listening at: http://${hostname}:${port}`);

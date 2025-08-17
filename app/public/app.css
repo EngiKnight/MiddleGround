@@ -1,0 +1,308 @@
+:root {
+  --bg1: #0e1116;
+  --bg2: #1a1f2b;
+  --accent: #7c5cff;
+  --accent-2: #59d2fe;
+  --text: #e8ecf1;
+  --muted: #a5afbd;
+  --card: #121722cc;
+  --border: #2b3240;
+  --shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+}
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg1: #f5f7fb;
+    --bg2: #e9efff;
+    --text: #0d1220;
+    --muted: #495366;
+    --card: #ffffffcc;
+    --border: #e6e9f2;
+    --shadow: 0 12px 28px rgba(16, 24, 40, 0.12);
+  }
+}
+* {
+  box-sizing: border-box;
+}
+html,
+body {
+  height: 100%;
+}
+body {
+  margin: 0;
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial,
+    "Apple Color Emoji", "Segoe UI Emoji";
+  color: var(--text);
+  background: radial-gradient(
+      1000px 600px at 10% -10%,
+      var(--bg2),
+      transparent 60%
+    ),
+    radial-gradient(900px 500px at 110% 10%, var(--bg2), transparent 60%),
+    linear-gradient(180deg, var(--bg1), var(--bg1));
+}
+
+.container {
+  max-width: 1000px;
+  padding: 24px;
+  margin: 0 auto;
+  min-height: 100svh;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  gap: 24px;
+}
+
+/* Top bar */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+}
+.brand-badge {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  box-shadow: var(--shadow);
+}
+.nav {
+  display: flex;
+  gap: 0.6rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+/* Buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  text-decoration: none;
+  color: var(--text);
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  transition: transform 0.05s ease, background 0.2s ease, border-color 0.2s ease,
+    opacity 0.2s ease;
+  cursor: pointer;
+  user-select: none;
+}
+.btn:active {
+  transform: translateY(1px);
+}
+.btn-ghost {
+  background: transparent;
+}
+.btn-primary {
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  border-color: transparent;
+  color: #fff;
+  box-shadow: var(--shadow);
+}
+
+/* Filter Controls */
+.filter-buttons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.filter-checkbox-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.filter-checkbox {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.filter-label {
+  cursor: pointer;
+  margin: 0;
+  user-select: none;
+}
+
+.category-search-container {
+  margin-top: 12px;
+}
+
+.category-search-label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+
+.category-search-input {
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg1);
+  color: var(--text);
+}
+
+/* Venue marker styles */
+.venue-marker {
+  background: transparent !important;
+  border: none !important;
+}
+
+.venue-marker div {
+  transition: all 0.2s ease;
+}
+
+.venue-marker:hover div {
+  transform: scale(1.2);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* Places grid and card styles */
+.places-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+  max-width: 100%;
+}
+
+/* Responsive grid - up to 3 cards per row */
+@media (min-width: 640px) {
+  .places-grid {
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  }
+}
+
+@media (min-width: 1000px) {
+  .places-grid {
+    grid-template-columns: repeat(3, 1fr);
+    max-width: 1000px;
+  }
+}
+
+/* Places card styles */
+
+.card,
+.place-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: var(--shadow);
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  min-height: 200px;
+}
+
+.card:hover,
+.place-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+}
+
+.place-name {
+  margin: 0 0 12px 0;
+  color: var(--text);
+  font-size: 18px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.place-details {
+  color: var(--muted);
+  font-size: 14px;
+  margin-bottom: 6px;
+  flex-shrink: 0;
+}
+
+/* Filter header styles */
+.filter-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.filter-header h4 {
+  margin: 0;
+  flex-shrink: 0;
+}
+
+.filter-header .category-search-input {
+  flex: 1;
+  min-width: 250px;
+}
+
+/* Place detail spacing */
+.place-details.categories {
+  margin-top: 8px;
+}
+
+.place-details.website,
+.place-details.phone {
+  margin-top: 6px;
+}
+
+/* Link styles for places */
+.place-website-link {
+  color: var(--accent);
+  text-decoration: underline;
+}
+
+.place-phone-link {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+/* Error card styling */
+.error-card {
+  border-color: var(--accent);
+}
+
+.error-card p {
+  color: var(--accent);
+  margin: 0;
+}
+
+/* No results styling */
+.no-results-card {
+  grid-column: 1 / -1;
+}
+
+.no-results-text {
+  margin: 0;
+  text-align: center;
+  color: var(--muted);
+}
+
+/* Popup content styling for map markers */
+.venue-popup {
+  min-width: 200px;
+}
+
+.venue-popup strong {
+  display: block;
+  margin-bottom: 4px;
+}
+
+.venue-popup a {
+  color: var(--accent);
+}
+
+.venue-popup .website-link {
+  text-decoration: underline;
+}
