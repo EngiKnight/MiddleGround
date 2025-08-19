@@ -1,235 +1,236 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Middle Ground</title>
-  <style>
-    :root{
-      --bg1:#0e1116;
-      --bg2:#1a1f2b;
-      --accent:#7c5cff;
-      --accent-2:#59d2fe;
-      --text:#e8ecf1;
-      --muted:#a5afbd;
-      --card:#121722cc;
-      --border:#2b3240;
-      --shadow: 0 10px 30px rgba(0,0,0,.35);
-    }
-    @media (prefers-color-scheme: light){
-      :root{
-        --bg1:#f5f7fb;
-        --bg2:#e9efff;
-        --text:#0d1220;
-        --muted:#495366;
-        --card:#ffffffcc;
-        --border:#e6e9f2;
-        --shadow: 0 12px 28px rgba(16,24,40,.12);
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1"
+    />
+    <title>Middle Ground</title>
+    <link
+      rel="stylesheet"
+      href="app.css"
+    />
+    <style>
+      /* Hero */
+      .hero {
+        display: grid;
+        place-items: center;
+        text-align: center;
+        padding: 40px 0 10px;
+        gap: 24px;
+        animation: fadeIn 0.5s ease both;
       }
-    }
-    *{box-sizing:border-box}
-    html,body{height:100%}
-    body{
-      margin:0;
-      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Apple Color Emoji", "Segoe UI Emoji";
-      color:var(--text);
-      background:
-        radial-gradient(1000px 600px at 10% -10%, var(--bg2), transparent 60%),
-        radial-gradient(900px 500px at 110% 10%, var(--bg2), transparent 60%),
-        linear-gradient(180deg, var(--bg1), var(--bg1));
-    }
+      .title {
+        font-size: clamp(34px, 6vw, 64px);
+        line-height: 1.05;
+        margin: 0;
+        letter-spacing: 0.2px;
+      }
+      .tagline {
+        font-size: clamp(14px, 2.6vw, 18px);
+        color: var(--muted);
+        margin: 0 auto;
+        max-width: 46ch;
+      }
 
-    .container{
-      max-width:1000px;
-      padding:24px;
-      margin:0 auto;
-      min-height:100svh;
-      display:grid;
-      grid-template-rows:auto 1fr auto;
-      gap:24px;
-    }
+      /* Card with description */
+      .card {
+        margin: 0 auto;
+        width: min(900px, 100%);
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        padding: 22px 22px;
+        box-shadow: var(--shadow);
+        backdrop-filter: blur(6px);
+      }
+      .card h2 {
+        margin: 0 0 8px 0;
+        font-size: 18px;
+        letter-spacing: 0.2px;
+      }
+      .card p {
+        margin: 6px 0 0 0;
+        color: var(--muted);
+        line-height: 1.65;
+      }
 
-    /* Top bar */
-    .topbar{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-    }
-    .brand{
-      display:flex; align-items:center; gap:.6rem;
-      font-weight:800; letter-spacing:.2px;
-    }
-    .brand-badge{
-      width:28px;height:28px; border-radius:8px;
-      background: linear-gradient(135deg, var(--accent), var(--accent-2));
-      box-shadow: var(--shadow);
-    }
-    .nav{
-      display:flex; gap:.6rem; align-items:center; flex-wrap:wrap;
-    }
+      .actions {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin-top: 6px;
+      }
+      .footer {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+        color: var(--muted);
+        font-size: 14px;
+        border-top: 1px solid var(--border);
+        padding-top: 14px;
+        margin-top: 10px;
+      }
 
-    /* Buttons */
-    .btn{
-      display:inline-flex; align-items:center; justify-content:center;
-      padding:10px 14px; border-radius:12px; border:1px solid var(--border);
-      text-decoration:none; color:var(--text); font-weight:600; letter-spacing:.2px;
-      transition: transform .05s ease, background .2s ease, border-color .2s ease, opacity .2s ease;
-      cursor:pointer; user-select:none;
-    }
-    .btn:active{ transform: translateY(1px); }
-    .btn-ghost{ background:transparent; }
-    .btn-primary{
-      background: linear-gradient(135deg, var(--accent), var(--accent-2));
-      border-color: transparent; color:#fff;
-      box-shadow: var(--shadow);
-    }
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(6px);
+        }
+        to {
+          opacity: 1;
+          transform: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="container">
+      <!-- Top bar -->
+      <header class="topbar">
+        <div class="brand">
+          <span
+            class="brand-badge"
+            aria-hidden="true"
+          ></span>
+          <span>Middle&nbsp;Ground</span>
+        </div>
+        <nav class="nav">
+          <a
+            class="btn btn-ghost"
+            href="places.html"
+            >Choose a Location</a
+          >
+          <a
+            class="btn btn-ghost"
+            href="/meet.html"
+            >Meet</a
+          >
+          <!-- Fallback auth links (will be replaced if logged in) -->
+          <span id="auth-inline">
+            <a
+              class="btn btn-ghost"
+              href="/login.html"
+              >Log in</a
+            >
+            <a
+              class="btn btn-primary"
+              href="/signup.html"
+              >Sign up</a
+            >
+          </span>
+        </nav>
+      </header>
 
-    /* Hero */
-    .hero{
-      display:grid; place-items:center; text-align:center; padding:40px 0 10px;
-      gap:24px;
-      animation: fadeIn .5s ease both;
-    }
-    .title{
-      font-size: clamp(34px, 6vw, 64px);
-      line-height:1.05; margin:0;
-      letter-spacing:.2px;
-    }
-    .tagline{
-      font-size: clamp(14px, 2.6vw, 18px);
-      color:var(--muted); margin:0 auto; max-width:46ch;
-    }
+      <!-- Hero -->
+      <section class="hero">
+        <div>
+          <h1 class="title">Middle Ground</h1>
+          <p class="tagline">Find the most fair spot to meet—automatically.</p>
+        </div>
 
-    /* Card with description */
-    .card{
-      margin: 0 auto;
-      width:min(900px, 100%);
-      background:var(--card);
-      border:1px solid var(--border);
-      border-radius:18px;
-      padding:22px 22px;
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(6px);
-    }
-    .card h2{ margin:0 0 8px 0; font-size:18px; letter-spacing:.2px; }
-    .card p{ margin:6px 0 0 0; color:var(--muted); line-height:1.65; }
+        <div
+          class="actions"
+          id="auth-cta"
+        >
+          <!-- Default CTAs; replaced when logged in -->
+          <a
+            class="btn btn-primary"
+            href="/signup.html"
+            >Get Started</a
+          >
+          <a
+            class="btn btn-ghost"
+            href="/login.html"
+            >I already have an account</a
+          >
+        </div>
 
-    .actions{
-      display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-top:6px;
-    }
-    .footer{
-      display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap; color:var(--muted); font-size:14px;
-      border-top:1px solid var(--border); padding-top:14px; margin-top:10px;
-    }
+        <!-- Project description -->
+        <div class="card">
+          <h2>What it does</h2>
+          <p>
+            This project lets people create meetings at a central location based
+            on participants’ locations. Users enter their location, create
+            meetings, and invite others. The creator picks a venue type, and
+            participants get email notifications. After locations are added, the
+            site uses a map API to compute the most central spot and finds the
+            nearest place that matches the selected type.
+          </p>
+        </div>
+      </section>
 
-    @keyframes fadeIn { from{opacity:0; transform: translateY(6px);} to{opacity:1; transform:none;} }
-  </style>
-</head>
-<body>
-  <main class="container">
-    <!-- Top bar -->
-    <header class="topbar">
-      <div class="brand">
-        <span class="brand-badge" aria-hidden="true"></span>
-        <span>Middle&nbsp;Ground</span>
-      </div>
-      <nav class="nav">
-        <a class="btn btn-ghost" href="/API%20Test/api.html">API Test</a>
-        <!-- Fallback auth links (will be replaced if logged in) -->
-        <span id="auth-inline">
-          <a class="btn btn-ghost" href="/login.html">Log in</a>
-          <a class="btn btn-primary" href="/signup.html">Sign up</a>
-        </span>
-      </nav>
-    </header>
+      <footer class="footer">
+        <div>© <span id="year"></span> Middle Ground</div>
+        <div id="auth-footer"><!-- filled by JS --></div>
+      </footer>
+    </main>
 
-    <!-- Hero -->
-    <section class="hero">
-      <div>
-        <h1 class="title">Middle Ground</h1>
-        <p class="tagline">Find the most fair spot to meet—automatically.</p>
-      </div>
+    <script>
+      // Utility: safely parse JSON, tolerate non-JSON responses
+      async function tryJson(res) {
+        const ct = res.headers.get("content-type") || "";
+        if (!ct.includes("application/json")) return null;
+        try {
+          return await res.json();
+        } catch {
+          return null;
+        }
+      }
 
-      <div class="actions" id="auth-cta">
-        <!-- Default CTAs; replaced when logged in -->
-        <a class="btn btn-primary" href="/signup.html">Get Started</a>
-        <a class="btn btn-ghost" href="/login.html">I already have an account</a>
-      </div>
+      // Set current year
+      document.getElementById("year").textContent = new Date().getFullYear();
 
-      <!-- Project description -->
-      <div class="card">
-        <h2>What it does</h2>
-        <p>
-          This project lets people create meetings at a central location based on participants’ locations.
-          Users enter their location, create meetings, and invite others. The creator picks a venue type,
-          and participants get email notifications. After locations are added, the site uses a map API to
-          compute the most central spot and finds the nearest place that matches the selected type.
-        </p>
-      </div>
-    </section>
+      // Auth-aware rendering
+      (async function renderAuth() {
+        // Start with visible defaults (links already in markup)
+        try {
+          const res = await fetch("/api/me", { credentials: "same-origin" });
+          const data = await tryJson(res);
+          if (!data || !data.user) return;
 
-    <footer class="footer">
-      <div>© <span id="year"></span> Middle Ground</div>
-      <div id="auth-footer"><!-- filled by JS --></div>
-    </footer>
-  </main>
+          // If logged in, swap CTAs + topbar and add logout
+          const username = data.user.username;
+          const authInline = document.getElementById("auth-inline");
+          const authCta = document.getElementById("auth-cta");
+          const authFooter = document.getElementById("auth-footer");
 
-  <script>
-    // Utility: safely parse JSON, tolerate non-JSON responses
-    async function tryJson(res){
-      const ct = res.headers.get('content-type') || '';
-      if (!ct.includes('application/json')) return null;
-      try { return await res.json(); } catch { return null; }
-    }
-
-    // Set current year
-    document.getElementById('year').textContent = new Date().getFullYear();
-
-    // Auth-aware rendering
-    (async function renderAuth(){
-      // Start with visible defaults (links already in markup)
-      try{
-        const res = await fetch('/api/me', { credentials:'same-origin' });
-        const data = await tryJson(res);
-        if (!data || !data.user) return;
-
-        // If logged in, swap CTAs + topbar and add logout
-        const username = data.user.username;
-        const authInline = document.getElementById('auth-inline');
-        const authCta = document.getElementById('auth-cta');
-        const authFooter = document.getElementById('auth-footer');
-
-        if (authInline){
-          authInline.innerHTML = `
+          if (authInline) {
+            authInline.innerHTML = `
             <span style="opacity:.85; margin-right:.25rem;">Signed in as <b>${username}</b></span>
             <button class="btn btn-ghost" id="logoutBtnTop">Log out</button>
           `;
-        }
-        if (authCta){
-          authCta.innerHTML = `
+          }
+          if (authCta) {
+            authCta.innerHTML = `
             <a class="btn btn-primary" href="/">Home</a>
             <button class="btn btn-ghost" id="logoutBtnHero">Log out</button>
           `;
-        }
-        if (authFooter){
-          authFooter.innerHTML = `Signed in as <b>${username}</b>`;
-        }
+          }
+          if (authFooter) {
+            authFooter.innerHTML = `Signed in as <b>${username}</b>`;
+          }
 
-        function wireLogout(id){
-          const btn = document.getElementById(id);
-          if (!btn) return;
-          btn.addEventListener('click', async () => {
-            await fetch('/api/logout', { method:'POST', credentials:'same-origin' });
-            location.reload();
-          });
+          function wireLogout(id) {
+            const btn = document.getElementById(id);
+            if (!btn) return;
+            btn.addEventListener("click", async () => {
+              await fetch("/api/logout", {
+                method: "POST",
+                credentials: "same-origin",
+              });
+              location.reload();
+            });
+          }
+          wireLogout("logoutBtnTop");
+          wireLogout("logoutBtnHero");
+        } catch (e) {
+          // keep defaults if /api/me fails (e.g., server not running)
         }
-        wireLogout('logoutBtnTop');
-        wireLogout('logoutBtnHero');
-
-      }catch(e){
-        // keep defaults if /api/me fails (e.g., server not running)
-      }
-    })();
-  </script>
-</body>
+      })();
+    </script>
+  </body>
 </html>
