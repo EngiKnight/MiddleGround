@@ -91,7 +91,6 @@
         </div>
         <nav class="nav">
           <a class="btn btn-ghost" href="/places.html">Choose a Location</a>
-          <!-- NEW: Meet button in the nav -->
           <a class="btn btn-ghost" href="/meet.html">Meet</a>
           <!-- Fallback auth links (will be replaced if logged in) -->
           <span id="auth-inline">
@@ -163,9 +162,9 @@
           const authFooter = document.getElementById("auth-footer");
 
           if (authInline) {
+            // NOTE: Do NOT inject another "Meet" here; it's already in the nav statically.
             authInline.innerHTML = `
               <span style="opacity:.85; margin-right:.25rem;">Signed in as <b>${username}</b></span>
-              <a class="btn btn-ghost" href="/meet.html">Meet</a>
               <button class="btn btn-ghost" id="logoutBtnTop">Log out</button>
             `;
           }
@@ -193,7 +192,7 @@
           }
           wireLogout("logoutBtnTop");
           wireLogout("logoutBtnHero");
-        } catch (e) {
+        } catch {
           // keep defaults if /api/me fails
         }
       })();
