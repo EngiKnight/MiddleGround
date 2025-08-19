@@ -2,15 +2,9 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1"
-    />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Middle Ground</title>
-    <link
-      rel="stylesheet"
-      href="app.css"
-    />
+    <link rel="stylesheet" href="app.css" />
     <style>
       /* Hero */
       .hero {
@@ -92,30 +86,17 @@
       <!-- Top bar -->
       <header class="topbar">
         <div class="brand">
-          <span
-            class="brand-badge"
-            aria-hidden="true"
-          ></span>
+          <span class="brand-badge" aria-hidden="true"></span>
           <span>Middle&nbsp;Ground</span>
         </div>
         <nav class="nav">
-          <a
-            class="btn btn-ghost"
-            href="places.html"
-            >Choose a Location</a
-          >
+          <a class="btn btn-ghost" href="/places.html">Choose a Location</a>
+          <!-- NEW: Meet button in the nav -->
+          <a class="btn btn-ghost" href="/meet.html">Meet</a>
           <!-- Fallback auth links (will be replaced if logged in) -->
           <span id="auth-inline">
-            <a
-              class="btn btn-ghost"
-              href="/login.html"
-              >Log in</a
-            >
-            <a
-              class="btn btn-primary"
-              href="/signup.html"
-              >Sign up</a
-            >
+            <a class="btn btn-ghost" href="/login.html">Log in</a>
+            <a class="btn btn-primary" href="/signup.html">Sign up</a>
           </span>
         </nav>
       </header>
@@ -127,21 +108,10 @@
           <p class="tagline">Find the most fair spot to meet—automatically.</p>
         </div>
 
-        <div
-          class="actions"
-          id="auth-cta"
-        >
+        <div class="actions" id="auth-cta">
           <!-- Default CTAs; replaced when logged in -->
-          <a
-            class="btn btn-primary"
-            href="/signup.html"
-            >Get Started</a
-          >
-          <a
-            class="btn btn-ghost"
-            href="/login.html"
-            >I already have an account</a
-          >
+          <a class="btn btn-primary" href="/signup.html">Get Started</a>
+          <a class="btn btn-ghost" href="/login.html">I already have an account</a>
         </div>
 
         <!-- Project description -->
@@ -181,7 +151,6 @@
 
       // Auth-aware rendering
       (async function renderAuth() {
-        // Start with visible defaults (links already in markup)
         try {
           const res = await fetch("/api/me", { credentials: "same-origin" });
           const data = await tryJson(res);
@@ -195,15 +164,17 @@
 
           if (authInline) {
             authInline.innerHTML = `
-            <span style="opacity:.85; margin-right:.25rem;">Signed in as <b>${username}</b></span>
-            <button class="btn btn-ghost" id="logoutBtnTop">Log out</button>
-          `;
+              <span style="opacity:.85; margin-right:.25rem;">Signed in as <b>${username}</b></span>
+              <a class="btn btn-ghost" href="/meet.html">Meet</a>
+              <button class="btn btn-ghost" id="logoutBtnTop">Log out</button>
+            `;
           }
           if (authCta) {
             authCta.innerHTML = `
-            <a class="btn btn-primary" href="/">Home</a>
-            <button class="btn btn-ghost" id="logoutBtnHero">Log out</button>
-          `;
+              <a class="btn btn-primary" href="/meet.html">Plan a meeting</a>
+              <a class="btn btn-ghost" href="/places.html">Places</a>
+              <button class="btn btn-ghost" id="logoutBtnHero">Log out</button>
+            `;
           }
           if (authFooter) {
             authFooter.innerHTML = `Signed in as <b>${username}</b>`;
@@ -223,7 +194,7 @@
           wireLogout("logoutBtnTop");
           wireLogout("logoutBtnHero");
         } catch (e) {
-          // keep defaults if /api/me fails (e.g., server not running)
+          // keep defaults if /api/me fails
         }
       })();
     </script>
