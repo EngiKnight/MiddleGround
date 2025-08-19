@@ -3,10 +3,11 @@ const express = require("express");
 const session = require("express-session");
 const pgSession = require("connect-pg-simple")(session);
 const bcrypt = require("bcryptjs");
-const crypto = require("crypto");
-const { sendMail } = require("./email");
 const dotenv = require("dotenv");
 dotenv.config({ path: path.join(__dirname, "..", ".env") });
+
+const crypto = require("crypto");
+const { sendMail } = require("./email");
 
 let foursquareUrl = "https://places-api.foursquare.com/places/search";
 
@@ -53,15 +54,6 @@ app.use(
 
 // Serve static files
 app.use(express.static(path.join(__dirname, "public")));
-
-// Helpers
-function baseUrl(req) {
-  if (process.env.PUBLIC_BASE_URL) return process.env.PUBLIC_BASE_URL.replace(/\/+$/,'');
-  const proto = req.protocol;
-  return `${proto}://${req.get("host")}`;
-}
-function escapeHtml(s=""){ return String(s).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c])); }
-
 
 // Helpers
 function requireAuth(req, res, next) {
@@ -172,6 +164,7 @@ app.get("/api/places", (req, res) => {
     })
     .catch((err) => console.log(err));
 });
+
 
 
 // ========== MEETINGS & INVITES ==========

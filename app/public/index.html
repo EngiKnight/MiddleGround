@@ -104,11 +104,6 @@
             href="places.html"
             >Choose a Location</a
           >
-          <a
-            class="btn btn-ghost"
-            href="/meet.html"
-            >Meet</a
-          >
           <!-- Fallback auth links (will be replaced if logged in) -->
           <span id="auth-inline">
             <a
@@ -207,7 +202,12 @@
           if (authCta) {
             authCta.innerHTML = `
             <a class="btn btn-primary" href="/">Home</a>
-            <button class="btn btn-ghost" id="logoutBtnHero">Log out</button>
+            
+          <a
+            class="btn btn-ghost"
+            href="/meet.html"
+            >Meet</a>
+          <button class="btn btn-ghost" id="logoutBtnHero">Log out</button>
           `;
           }
           if (authFooter) {
