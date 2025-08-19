@@ -63,6 +63,24 @@ function requireAuth(req, res, next) {
   next();
 }
 
+function baseUrl(req) {
+  // Prefer explicit env (e.g., on Fly), else derive from request
+  if (process.env.PUBLIC_BASE_URL) return process.env.PUBLIC_BASE_URL.replace(/\/+$/, "");
+  const proto = (req.headers["x-forwarded-proto"] ?? req.protocol) || "http";
+  const host = req.get("host");
+  return `${proto}://${host}`;
+}
+
+function escapeHtml(s = "") {
+  return String(s).replace(/[&<>"']/g, c => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
+  }[c]));
+}
+
 // API routes
 app.post("/api/signup", async (req, res) => {
   try {
