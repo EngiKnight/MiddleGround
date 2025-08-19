@@ -6,15 +6,14 @@ const bcrypt = require("bcryptjs");
 const dotenv = require("dotenv");
 dotenv.config({ path: path.join(__dirname, "..", ".env") });
 
-
-
-let foursquareUrl = "https://places-api.foursquare.com/places/search";
-
-let keys = require("../env.json");
-let foursquareKey = keys.foursquare;
 const crypto = require("crypto");
 const { sendMail } = require("./email");
+const { pool, query } = require("./db");
 
+// ---- Foursquare setup (unchanged from main) ----
+let foursquareUrl = "https://places-api.foursquare.com/places/search";
+let keys = require("../env.json");
+let foursquareKey = keys.foursquare;
 let options = {
   method: "GET",
   headers: {
@@ -24,7 +23,12 @@ let options = {
   },
 };
 
-const { pool, query } = require("./db");
+// If Node < 18, provide a fetch fallback (also used by Resend in email.js)
+async function doFetch(url, opts) {
+  if (typeof fetch === "function") return fetch(url, opts);
+  const nf = await import("node-fetch"); // npm i node-fetch if needed
+  return nf.default(url, opts);
+}
 
 const app = express();
 const isProd = process.env.NODE_ENV === "production";
@@ -64,38 +68,28 @@ function requireAuth(req, res, next) {
   next();
 }
 
+// ---- helpers for invite emails ----
 function baseUrl(req) {
-  // Prefer explicit env (e.g., on Fly), else derive from request
   if (process.env.PUBLIC_BASE_URL) return process.env.PUBLIC_BASE_URL.replace(/\/+$/, "");
   const proto = (req.headers["x-forwarded-proto"] ?? req.protocol) || "http";
-  const host = req.get("host");
-  return `${proto}://${host}`;
+  return `${proto}://${req.get("host")}`;
 }
-
 function escapeHtml(s = "") {
   return String(s).replace(/[&<>"']/g, c => ({
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#39;"
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
   }[c]));
 }
 
-// API routes
+// ==================== AUTH ROUTES (from main) ====================
 app.post("/api/signup", async (req, res) => {
   try {
     const { username, email, password } = req.body;
     if (!username || !password) {
-      return res
-        .status(400)
-        .json({ error: "username and password are required" });
+      return res.status(400).json({ error: "username and password are required" });
     }
     const pw = String(password);
     if (pw.length < 8) {
-      return res
-        .status(400)
-        .json({ error: "password must be at least 8 characters" });
+      return res.status(400).json({ error: "password must be at least 8 characters" });
     }
     const hash = await bcrypt.hash(pw, 12);
     const result = await query(
@@ -103,17 +97,11 @@ app.post("/api/signup", async (req, res) => {
       [username, email || null, hash]
     );
     const user = result.rows[0];
-    req.session.user = {
-      id: user.id,
-      username: user.username,
-      email: user.email,
-    };
+    req.session.user = { id: user.id, username: user.username, email: user.email };
     res.status(201).json({ user: req.session.user });
   } catch (err) {
     if (err && err.code === "23505") {
-      return res
-        .status(409)
-        .json({ error: "username or email already exists" });
+      return res.status(409).json({ error: "username or email already exists" });
     }
     console.error(err);
     res.status(500).json({ error: "internal server error" });
@@ -124,9 +112,7 @@ app.post("/api/login", async (req, res) => {
   try {
     const { username, password } = req.body;
     if (!username || !password) {
-      return res
-        .status(400)
-        .json({ error: "username and password are required" });
+      return res.status(400).json({ error: "username and password are required" });
     }
     const result = await query(
       "SELECT id, username, email, password_hash FROM users WHERE username = $1",
@@ -140,11 +126,7 @@ app.post("/api/login", async (req, res) => {
     if (!ok) {
       return res.status(401).json({ error: "invalid credentials" });
     }
-    req.session.user = {
-      id: user.id,
-      username: user.username,
-      email: user.email,
-    };
+    req.session.user = { id: user.id, username: user.username, email: user.email };
     res.json({ user: req.session.user });
   } catch (err) {
     console.error(err);
@@ -167,45 +149,26 @@ app.get("/api/protected", requireAuth, (req, res) => {
   res.json({ message: `Hello, ${req.session.user.username}!` });
 });
 
+// ==================== FOURSQUARE ROUTE (from main) ====================
 app.get("/api/places", (req, res) => {
-  let lat = req.query.lat;
-  let long = req.query.long;
+  const lat = req.query.lat;
+  const long = req.query.long;
 
-  fetch(
+  // Keep your original query shape & headers
+  doFetch(
     foursquareUrl +
       `?ll=${lat},${long}&fields=categories,location,name,distance,latitude,longitude,website,tel`,
     options
   )
     .then((info) => info.json())
-    .then((info) => {
-      //console.log(info);
-      return res.json(info);
-    })
-    .catch((err) => console.log(err));
+    .then((info) => res.json(info))
+    .catch((err) => {
+      console.error("Foursquare error:", err);
+      res.status(500).json({ error: "foursquare request failed" });
+    });
 });
 
-
-
-// ---- helpers (used by invite emails) ----
-function baseUrl(req) {
-  // Prefer explicit env (e.g., on Fly), else derive from request
-  if (process.env.PUBLIC_BASE_URL) return process.env.PUBLIC_BASE_URL.replace(/\/+$/, "");
-  const proto = (req.headers["x-forwarded-proto"] ?? req.protocol) || "http";
-  const host = req.get("host");
-  return `${proto}://${host}`;
-}
-
-function escapeHtml(s = "") {
-  return String(s).replace(/[&<>"']/g, c => ({
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#39;"
-  }[c]));
-}
-
-// ========== MEETINGS & INVITES ==========
+// ==================== MEETINGS & INVITES (email branch) ====================
 
 // Create a meeting (owner = current user)
 app.post("/api/meetings", requireAuth, async (req, res) => {
@@ -236,7 +199,7 @@ app.post("/api/meetings/:id/invite", requireAuth, async (req, res) => {
       return res.status(400).json({ error: "meeting id and email are required" });
     }
 
-    // Only the owner can invite (simple rule)
+    // Only the owner can invite
     const ow = await query(`SELECT owner_user_id, title FROM meetings WHERE id = $1`, [meetingId]);
     if (ow.rowCount === 0) return res.status(404).json({ error: "meeting not found" });
     if (ow.rows[0].owner_user_id !== req.session.user.id) {
@@ -292,7 +255,7 @@ app.post("/api/meetings/:id/invite", requireAuth, async (req, res) => {
   }
 });
 
-// Accept invitation by token (joins if logged in)
+// Accept invitation by token
 app.get("/api/invitations/accept", async (req, res) => {
   try {
     const { token } = req.query || {};
@@ -326,7 +289,7 @@ app.get("/api/invitations/accept", async (req, res) => {
       [inv.id]
     );
 
-    // Optional: notify owner
+    // Optional: notify owner that someone accepted
     const owner = await query(`SELECT email, username FROM users WHERE id = $1`, [inv.owner_user_id]);
     const ownerEmail = owner.rows?.[0]?.email;
     if (ownerEmail) {
@@ -359,8 +322,7 @@ app.get("/api/my/invitations", requireAuth, async (req, res) => {
     res.status(500).json({ error: "internal server error" });
   }
 });
-// ========== END MEETINGS & INVITES ==========
-
+// ==================== END MEETINGS & INVITES ====================
 
 app.listen(port, hostname, () => {
   console.log(`Listening at: http://${hostname}:${port}`);
