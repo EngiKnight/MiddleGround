@@ -6,13 +6,14 @@ const bcrypt = require("bcryptjs");
 const dotenv = require("dotenv");
 dotenv.config({ path: path.join(__dirname, "..", ".env") });
 
-const crypto = require("crypto");
-const { sendMail } = require("./email");
+
 
 let foursquareUrl = "https://places-api.foursquare.com/places/search";
 
 let keys = require("../env.json");
 let foursquareKey = keys.foursquare;
+const crypto = require("crypto");
+const { sendMail } = require("./email");
 
 let options = {
   method: "GET",
@@ -185,6 +186,25 @@ app.get("/api/places", (req, res) => {
 
 
 
+// ---- helpers (used by invite emails) ----
+function baseUrl(req) {
+  // Prefer explicit env (e.g., on Fly), else derive from request
+  if (process.env.PUBLIC_BASE_URL) return process.env.PUBLIC_BASE_URL.replace(/\/+$/, "");
+  const proto = (req.headers["x-forwarded-proto"] ?? req.protocol) || "http";
+  const host = req.get("host");
+  return `${proto}://${host}`;
+}
+
+function escapeHtml(s = "") {
+  return String(s).replace(/[&<>"']/g, c => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
+  }[c]));
+}
+
 // ========== MEETINGS & INVITES ==========
 
 // Create a meeting (owner = current user)
@@ -192,12 +212,14 @@ app.post("/api/meetings", requireAuth, async (req, res) => {
   try {
     const { title, venueType } = req.body || {};
     if (!title) return res.status(400).json({ error: "title is required" });
+
     const r = await query(
       `INSERT INTO meetings (owner_user_id, title, venue_type)
        VALUES ($1, $2, $3)
        RETURNING id, owner_user_id, title, venue_type, created_at`,
       [req.session.user.id, title, venueType || null]
     );
+
     res.status(201).json({ meeting: r.rows[0] });
   } catch (e) {
     console.error(e);
@@ -210,18 +232,25 @@ app.post("/api/meetings/:id/invite", requireAuth, async (req, res) => {
   try {
     const meetingId = Number(req.params.id);
     const { email } = req.body || {};
-    if (!meetingId || !email) return res.status(400).json({ error: "meeting id and email are required" });
+    if (!meetingId || !email) {
+      return res.status(400).json({ error: "meeting id and email are required" });
+    }
 
+    // Only the owner can invite (simple rule)
     const ow = await query(`SELECT owner_user_id, title FROM meetings WHERE id = $1`, [meetingId]);
     if (ow.rowCount === 0) return res.status(404).json({ error: "meeting not found" });
-    if (ow.rows[0].owner_user_id !== req.session.user.id) return res.status(403).json({ error: "forbidden" });
+    if (ow.rows[0].owner_user_id !== req.session.user.id) {
+      return res.status(403).json({ error: "forbidden" });
+    }
 
     const owner = req.session.user;
     const title = ow.rows[0].title;
 
+    // If the email belongs to an existing user, link it
     const u = await query(`SELECT id, email, username FROM users WHERE email = $1`, [email]);
     const invitedUserId = u.rowCount ? u.rows[0].id : null;
 
+    // Upsert one active invite per meeting/email
     const token = crypto.randomBytes(32).toString("hex");
     const up = await query(
       `INSERT INTO invitations (meeting_id, email, invited_user_id, token, status)
@@ -232,6 +261,7 @@ app.post("/api/meetings/:id/invite", requireAuth, async (req, res) => {
       [meetingId, email, invitedUserId, token]
     );
 
+    // Email invite
     const acceptLink = `${baseUrl(req)}/api/invitations/accept?token=${encodeURIComponent(up.rows[0].token)}`;
     const text = [
       `You've been invited to join the meeting "${title}" on Middle Ground.`,
@@ -262,7 +292,7 @@ app.post("/api/meetings/:id/invite", requireAuth, async (req, res) => {
   }
 });
 
-// Accept invitation by token
+// Accept invitation by token (joins if logged in)
 app.get("/api/invitations/accept", async (req, res) => {
   try {
     const { token } = req.query || {};
@@ -281,6 +311,7 @@ app.get("/api/invitations/accept", async (req, res) => {
     if (inv.status !== "pending") return res.status(400).send("Invitation already handled");
     if (new Date(inv.expires_at) < new Date()) return res.status(400).send("Invitation expired");
 
+    // If logged in, add them as a participant
     if (req.session && req.session.user) {
       await query(
         `INSERT INTO meeting_participants (meeting_id, user_id)
@@ -289,17 +320,19 @@ app.get("/api/invitations/accept", async (req, res) => {
       );
     }
 
+    // Mark as accepted
     await query(
       `UPDATE invitations SET status = 'accepted', responded_at = NOW() WHERE id = $1`,
       [inv.id]
     );
 
+    // Optional: notify owner
     const owner = await query(`SELECT email, username FROM users WHERE id = $1`, [inv.owner_user_id]);
     const ownerEmail = owner.rows?.[0]?.email;
     if (ownerEmail) {
       const subject = `Invitation accepted: ${inv.title}`;
       const text = `Your invitation to ${inv.email} for "${inv.title}" was accepted.`;
-      try { await sendMail({ to: ownerEmail, subject, text, html: `<p>${text}</p>` }); } catch {}
+      await sendMail({ to: ownerEmail, subject, text, html: `<p>${escapeHtml(text)}</p>` }).catch(() => {});
     }
 
     res.redirect("/");
@@ -309,7 +342,7 @@ app.get("/api/invitations/accept", async (req, res) => {
   }
 });
 
-// List my invitations
+// List my invitations (by my account email)
 app.get("/api/my/invitations", requireAuth, async (req, res) => {
   try {
     const email = req.session.user.email;
@@ -327,6 +360,7 @@ app.get("/api/my/invitations", requireAuth, async (req, res) => {
   }
 });
 // ========== END MEETINGS & INVITES ==========
+
 
 app.listen(port, hostname, () => {
   console.log(`Listening at: http://${hostname}:${port}`);
