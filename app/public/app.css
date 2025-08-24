@@ -1,3 +1,7 @@
+/* ==========================================================================
+   CSS VARIABLES & ROOT STYLES
+   ========================================================================== */
+
 :root {
   --bg1: #0e1116;
   --bg2: #1a1f2b;
@@ -9,6 +13,7 @@
   --border: #2b3240;
   --shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
 }
+
 @media (prefers-color-scheme: light) {
   :root {
     --bg1: #f5f7fb;
@@ -20,13 +25,20 @@
     --shadow: 0 12px 28px rgba(16, 24, 40, 0.12);
   }
 }
+
+/* ==========================================================================
+   RESET & BASE STYLES
+   ========================================================================== */
+
 * {
   box-sizing: border-box;
 }
+
 html,
 body {
   height: 100%;
 }
+
 body {
   margin: 0;
   font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial,
@@ -41,6 +53,21 @@ body {
     linear-gradient(180deg, var(--bg1), var(--bg1));
 }
 
+hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 20px 0;
+}
+/* ==========================================================================
+   LAYOUT COMPONENTS
+   ========================================================================== */
+
+.main {
+  display: grid;
+  place-items: center;
+  padding: 24px 0 10px;
+}
+
 .container {
   max-width: 1000px;
   padding: 24px;
@@ -51,12 +78,37 @@ body {
   gap: 24px;
 }
 
-/* Top bar */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.grid-1 {
+  display: grid;
+  gap: 12px;
+}
+
+.list {
+  display: grid;
+  gap: 8px;
+}
+
+.row {
+  display: grid;
+  gap: 6px;
+}
+
+/* ==========================================================================
+   NAVIGATION & HEADER
+   ========================================================================== */
+
 .topbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
+
 .brand {
   display: flex;
   align-items: center;
@@ -64,6 +116,7 @@ body {
   font-weight: 800;
   letter-spacing: 0.2px;
 }
+
 .brand-badge {
   width: 28px;
   height: 28px;
@@ -71,6 +124,7 @@ body {
   background: linear-gradient(135deg, var(--accent), var(--accent-2));
   box-shadow: var(--shadow);
 }
+
 .nav {
   display: flex;
   gap: 0.6rem;
@@ -78,7 +132,15 @@ body {
   flex-wrap: wrap;
 }
 
-/* Buttons */
+.link-home {
+  text-decoration: none;
+  color: inherit;
+}
+
+/* ==========================================================================
+   BUTTONS
+   ========================================================================== */
+
 .btn {
   display: inline-flex;
   align-items: center;
@@ -95,12 +157,15 @@ body {
   cursor: pointer;
   user-select: none;
 }
+
 .btn:active {
   transform: translateY(1px);
 }
+
 .btn-ghost {
   background: transparent;
 }
+
 .btn-primary {
   background: linear-gradient(135deg, var(--accent), var(--accent-2));
   border-color: transparent;
@@ -108,7 +173,14 @@ body {
   box-shadow: var(--shadow);
 }
 
-/* Filter Controls */
+/* Filter Controls Buttons */
+.filter-controls button {
+  padding: 6px 12px;
+  font-size: 0.9rem;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
 .filter-buttons {
   display: flex;
   gap: 8px;
@@ -116,25 +188,118 @@ body {
   align-items: center;
 }
 
-.filter-checkbox-wrapper {
-  position: relative;
-  display: inline-block;
-}
-
-.filter-checkbox {
-  position: absolute;
-  opacity: 0;
-  width: 0;
-  height: 0;
-  pointer-events: none;
-}
-
-.filter-label {
+.search-results button {
+  text-align: left;
+  padding: 12px 16px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
   cursor: pointer;
-  margin: 0;
-  user-select: none;
+  transition: all 0.2s ease;
 }
 
+.search-results button:hover {
+  background: var(--bg2);
+  border-color: var(--accent);
+}
+
+/* ==========================================================================
+   FORM ELEMENTS
+   ========================================================================== */
+
+.row label {
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.row input {
+  width: 100%;
+  padding: 12px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text);
+  outline: none;
+}
+
+.row input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent) 25%, transparent);
+}
+
+.location-form,
+.venue-form {
+  grid-template-columns: 1fr auto;
+  display: grid;
+  gap: 16px;
+  align-items: end;
+}
+
+.location-form {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.venue-form {
+  grid-template-columns: repeat(6, 1fr);
+}
+
+.location-form label,
+.venue-form label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 6px;
+  color: var(--text);
+}
+
+.location-form input,
+.venue-form input {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg2);
+  color: var(--text);
+  font-family: inherit;
+}
+
+.location-form input:focus,
+.location-form select:focus,
+.venue-form input:focus,
+.venue-form select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(124, 92, 255, 0.1);
+}
+
+.venue-form .inputGrid {
+  grid-column: span 2;
+}
+
+.meet-card input,
+.meet-card select {
+  width: 100%;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text);
+  outline: none;
+}
+
+.meet-card input:focus,
+.meet-card select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent) 25%, transparent);
+}
+
+.hint {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+/* Category Search */
 .category-search-container {
   margin-top: 12px;
 }
@@ -154,47 +319,129 @@ body {
   color: var(--text);
 }
 
-/* Venue marker styles */
-.venue-marker {
-  background: transparent !important;
-  border: none !important;
+.filter-header .category-search-input {
+  flex: 1;
+  min-width: 250px;
+}
+/* ==========================================================================
+   CARDS
+   ========================================================================== */
+
+/* Base Card Styles */
+.card:hover,
+.place-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
 }
 
-.venue-marker div {
-  transition: all 0.2s ease;
+/* Landing Card */
+.landing-card {
+  margin: 0 auto;
+  width: min(900px, 100%);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 22px 22px;
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(6px);
 }
 
-.venue-marker:hover div {
-  transform: scale(1.2);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4) !important;
+.landing-card h2 {
+  margin: 0 0 8px 0;
+  font-size: 18px;
+  letter-spacing: 0.2px;
 }
 
-/* Places grid and card styles */
-.places-grid {
+.landing-card p {
+  margin: 6px 0 0 0;
+  color: var(--muted);
+  line-height: 1.65;
+}
+
+/* Authentication Cards */
+.signup-card {
+  width: min(560px, 100%);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 22px;
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(6px);
+  animation: fadeIn 0.4s ease both;
+}
+
+.login-card {
+  width: min(520px, 100%);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 22px;
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(6px);
+  animation: fadeIn 0.4s ease both;
+}
+
+.signup-card h1,
+.login-card h1 {
+  margin: 0 0 6px 0;
+  font-size: clamp(24px, 3.5vw, 30px);
+}
+
+.signup-card p,
+.login-card p {
+  margin: 0 0 14px 0;
+  color: var(--muted);
+}
+
+.signup-card form,
+.login-card form {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 16px;
-  margin-top: 16px;
-  max-width: 100%;
+  gap: 12px;
 }
 
-/* Responsive grid - up to 3 cards per row */
-@media (min-width: 640px) {
-  .places-grid {
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  }
+/* Location Card */
+.location-card {
+  background: var(--card);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: var(--shadow);
+  margin-bottom: 16px;
 }
 
-@media (min-width: 1000px) {
-  .places-grid {
-    grid-template-columns: repeat(3, 1fr);
-    max-width: 1000px;
-  }
+.location-card h3 {
+  margin-top: 0;
+  margin-bottom: 16px;
 }
 
-/* Places card styles */
+.location-card p {
+  color: var(--muted);
+  margin-top: 0;
+}
 
-.card,
+.location-card .msg {
+  margin: 8px 0 0 0;
+  min-height: auto;
+}
+
+.location-info {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.location-info div {
+  background: var(--card);
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+
+/* Place Cards */
 .place-card {
   background: var(--card);
   border: 1px solid var(--border);
@@ -205,12 +452,6 @@ body {
   display: flex;
   flex-direction: column;
   min-height: 200px;
-}
-
-.card:hover,
-.place-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
 }
 
 .place-name {
@@ -228,26 +469,6 @@ body {
   flex-shrink: 0;
 }
 
-/* Filter header styles */
-.filter-header {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  margin-bottom: 16px;
-  flex-wrap: wrap;
-}
-
-.filter-header h4 {
-  margin: 0;
-  flex-shrink: 0;
-}
-
-.filter-header .category-search-input {
-  flex: 1;
-  min-width: 250px;
-}
-
-/* Place detail spacing */
 .place-details.categories {
   margin-top: 8px;
 }
@@ -257,18 +478,32 @@ body {
   margin-top: 6px;
 }
 
-/* Link styles for places */
-.place-website-link {
-  color: var(--accent);
-  text-decoration: underline;
+/* Meet Card */
+.meet-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 16px;
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(6px);
 }
 
-.place-phone-link {
-  color: var(--accent);
-  text-decoration: none;
+.meet-card h3 {
+  margin: 0 0 8px 0;
 }
 
-/* Error card styling */
+.meet-card label {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.meet-cardLayout {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* Error & No Results Cards */
 .error-card {
   border-color: var(--accent);
 }
@@ -278,7 +513,6 @@ body {
   margin: 0;
 }
 
-/* No results styling */
 .no-results-card {
   grid-column: 1 / -1;
 }
@@ -288,8 +522,98 @@ body {
   text-align: center;
   color: var(--muted);
 }
+.hint {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+.row {
+  display: grid;
+  gap: 6px;
+}
+.row label {
+  font-size: 14px;
+  color: var(--muted);
+}
+.row input {
+  width: 100%;
+  padding: 12px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text);
+  outline: none;
+}
+.row input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--accent) 25%, transparent);
+}
 
-/* Popup content styling for map markers */
+/* ==========================================================================
+   LANDING PAGE
+   ========================================================================== */
+
+.landing-hero {
+  display: grid;
+  place-items: center;
+  text-align: center;
+  padding: 40px 0 10px;
+  gap: 24px;
+  animation: fadeIn 0.5s ease both;
+}
+
+.title {
+  font-size: clamp(34px, 6vw, 64px);
+  line-height: 1.05;
+  margin: 0;
+  letter-spacing: 0.2px;
+}
+
+.tagline {
+  font-size: clamp(14px, 2.6vw, 18px);
+  color: var(--muted);
+  margin: 0 auto;
+  max-width: 46ch;
+}
+
+/* ==========================================================================
+   PLACES & MAPS
+   ========================================================================== */
+
+/* Map Styles */
+#mapContainer {
+  height: 400px;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  margin-bottom: 16px;
+}
+
+/* Places Grid */
+.places-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+  max-width: 100%;
+}
+
+/* Venue Markers */
+.venue-marker {
+  background: transparent !important;
+  border: none !important;
+}
+
+.venue-marker div {
+  transition: all 0.2s ease;
+}
+
+.venue-marker:hover div {
+  transform: scale(1.2);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* Popup Content */
 .venue-popup {
   min-width: 200px;
 }
@@ -305,4 +629,198 @@ body {
 
 .venue-popup .website-link {
   text-decoration: underline;
+}
+
+/* ==========================================================================
+   FILTERS & SEARCH
+   ========================================================================== */
+
+/* Filter Header */
+.filter-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.filter-header h4 {
+  margin: 0;
+  flex-shrink: 0;
+}
+
+/* Filter Checkboxes */
+.filter-checkbox-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.filter-checkbox {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.filter-label {
+  cursor: pointer;
+  margin: 0;
+  user-select: none;
+}
+
+/* Search Results */
+.search-results {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+/* ==========================================================================
+   UTILITIES & HELPERS
+   ========================================================================== */
+
+.actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.invitations {
+  grid-column: 1/-1;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: #0f1420aa;
+}
+
+.msg {
+  margin-top: 8px;
+  min-height: 20px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.muted {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.small {
+  opacity: 0.9;
+  font-size: 12px;
+}
+
+/* Link Styles */
+.place-website-link {
+  color: var(--accent);
+  text-decoration: underline;
+}
+
+.place-phone-link {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+/* ==========================================================================
+   ANIMATIONS
+   ========================================================================== */
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ==========================================================================
+   MEDIA QUERIES & RESPONSIVE DESIGN
+   ========================================================================== */
+
+/* Tablet & Mobile */
+@media (max-width: 860px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .location-form,
+  .venue-form {
+    grid-template-columns: 1fr;
+  }
+
+  .location-form div,
+  .venue-form div {
+    grid-column: span 1 !important;
+  }
+
+  .title {
+    font-size: 2rem;
+  }
+
+  #mapContainer {
+    height: 300px;
+  }
+}
+
+/* Desktop & Larger Screens */
+@media (min-width: 640px) {
+  .places-grid {
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  }
+}
+
+@media (min-width: 1000px) {
+  .places-grid {
+    grid-template-columns: repeat(3, 1fr);
+    max-width: 1000px;
+  }
+}
+
+/* ==========================================================================
+   FOOTER
+   ========================================================================== */
+
+.footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  color: var(--muted);
+  font-size: 14px;
+  border-top: 1px solid var(--border);
+  padding-top: 14px;
+  margin-top: 10px;
+}
+
+.footer-links {
+  text-align: center;
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.footer-links a {
+  color: inherit;
+  text-decoration: none;
+  border-bottom: 1px dashed color-mix(in oklab, var(--muted) 50%, transparent);
+}
+
+.footer-links a:hover {
+  color: var(--text);
+  border-bottom-color: color-mix(in oklab, var(--text) 50%, transparent);
 }

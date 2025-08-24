@@ -2,119 +2,80 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1"
+    />
     <title>Middle Ground</title>
-    <link rel="stylesheet" href="app.css" />
-    <style>
-      /* Hero */
-      .hero {
-        display: grid;
-        place-items: center;
-        text-align: center;
-        padding: 40px 0 10px;
-        gap: 24px;
-        animation: fadeIn 0.5s ease both;
-      }
-      .title {
-        font-size: clamp(34px, 6vw, 64px);
-        line-height: 1.05;
-        margin: 0;
-        letter-spacing: 0.2px;
-      }
-      .tagline {
-        font-size: clamp(14px, 2.6vw, 18px);
-        color: var(--muted);
-        margin: 0 auto;
-        max-width: 46ch;
-      }
-
-      /* Card with description */
-      .card {
-        margin: 0 auto;
-        width: min(900px, 100%);
-        background: var(--card);
-        border: 1px solid var(--border);
-        border-radius: 18px;
-        padding: 22px 22px;
-        box-shadow: var(--shadow);
-        backdrop-filter: blur(6px);
-      }
-      .card h2 {
-        margin: 0 0 8px 0;
-        font-size: 18px;
-        letter-spacing: 0.2px;
-      }
-      .card p {
-        margin: 6px 0 0 0;
-        color: var(--muted);
-        line-height: 1.65;
-      }
-
-      .actions {
-        display: flex;
-        gap: 10px;
-        justify-content: center;
-        flex-wrap: wrap;
-        margin-top: 6px;
-      }
-      .footer {
-        display: flex;
-        justify-content: space-between;
-        gap: 12px;
-        flex-wrap: wrap;
-        color: var(--muted);
-        font-size: 14px;
-        border-top: 1px solid var(--border);
-        padding-top: 14px;
-        margin-top: 10px;
-      }
-
-      @keyframes fadeIn {
-        from {
-          opacity: 0;
-          transform: translateY(6px);
-        }
-        to {
-          opacity: 1;
-          transform: none;
-        }
-      }
-    </style>
+    <link
+      rel="stylesheet"
+      href="app.css"
+    />
   </head>
   <body>
     <main class="container">
       <!-- Top bar -->
       <header class="topbar">
         <div class="brand">
-          <span class="brand-badge" aria-hidden="true"></span>
+          <span
+            class="brand-badge"
+            aria-hidden="true"
+          ></span>
           <span>Middle&nbsp;Ground</span>
         </div>
         <nav class="nav">
-          <a class="btn btn-ghost" href="/places.html">Choose a Location</a>
-          <a class="btn btn-ghost" href="/meet.html">Meet</a>
+          <a
+            class="btn btn-ghost"
+            href="/places.html"
+            >Choose a Location</a
+          >
+          <a
+            class="btn btn-ghost"
+            href="/meet.html"
+            >Meet</a
+          >
           <!-- Fallback auth links (will be replaced if logged in) -->
           <span id="auth-inline">
-            <a class="btn btn-ghost" href="/login.html">Log in</a>
-            <a class="btn btn-primary" href="/signup.html">Sign up</a>
+            <a
+              class="btn btn-ghost"
+              href="/login.html"
+              >Log in</a
+            >
+            <a
+              class="btn btn-primary"
+              href="/signup.html"
+              >Sign up</a
+            >
           </span>
         </nav>
       </header>
 
       <!-- Hero -->
-      <section class="hero">
+      <section class="landing-hero">
         <div>
           <h1 class="title">Middle Ground</h1>
           <p class="tagline">Find the most fair spot to meet—automatically.</p>
         </div>
 
-        <div class="actions" id="auth-cta">
+        <div
+          class="actions"
+          id="auth-cta"
+        >
           <!-- Default CTAs; replaced when logged in -->
-          <a class="btn btn-primary" href="/signup.html">Get Started</a>
-          <a class="btn btn-ghost" href="/login.html">I already have an account</a>
+          <a
+            class="btn btn-primary"
+            href="/signup.html"
+            >Get Started</a
+          >
+          <a
+            class="btn btn-ghost"
+            href="/login.html"
+            >I already have an account</a
+          >
         </div>
 
         <!-- Project description -->
-        <div class="card">
+        <div class="landing-card">
           <h2>What it does</h2>
           <p>
             This project lets people create meetings at a central location based

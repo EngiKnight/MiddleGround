@@ -1,130 +1,181 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <title>Create Meeting & Invite – Middle Ground</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="stylesheet" href="app.css" />
-  <style>
-    .hero{text-align:center; display:grid; gap:6px;}
-    .title{margin:0; font-size:clamp(26px,5vw,40px);}
-    .tagline{margin:0; color:var(--muted);}
-    .card{background:var(--card); border:1px solid var(--border); border-radius:18px; padding:16px; box-shadow:var(--shadow); backdrop-filter:blur(6px);}
-    .grid{display:grid; grid-template-columns:repeat(2,1fr); gap:16px;}
-    .grid-1{display:grid; gap:12px;}
-    label{font-size:12px; color:var(--muted);}
-    input, select{width:100%; padding:12px; border-radius:12px; border:1px solid var(--border); background:transparent; color:var(--text); outline:none;}
-    input:focus, select:focus{border-color:var(--accent); box-shadow:0 0 0 3px color-mix(in oklab, var(--accent) 25%, transparent);}
-    .row{display:grid; gap:6px;}
-    .muted{color:var(--muted); font-size:13px;}
-    .list{display:grid; gap:8px;}
-    .pill{display:inline-flex; align-items:center; gap:8px; padding:8px 12px; border-radius:999px; border:1px solid var(--border); background:#0f1420aa;}
-    .small{font-size:12px; opacity:.9}
-    @media (max-width: 860px){ .grid{grid-template-columns:1fr;} }
-  </style>
-</head>
-<body>
-  <main class="container">
-    <header class="topbar">
-      <div class="brand">
-        <span class="brand-badge" aria-hidden="true"></span>
-        <a href="/" style="text-decoration:none;color:inherit;">Middle&nbsp;Ground</a>
-      </div>
-      <nav class="nav">
-        <a class="btn btn-ghost" href="/places.html">Places</a>
-        <span id="auth-inline">
-          <a class="btn btn-ghost" href="/login.html">Log in</a>
-          <a class="btn btn-primary" href="/signup.html">Sign up</a>
-        </span>
-      </nav>
-    </header>
-
-    <section class="hero">
-      <h1 class="title">Create a meeting & invite friends</h1>
-      <p class="tagline">We’ll email invitations with a one-click accept link.</p>
-    </section>
-
-    <section class="grid">
-      <div class="card">
-        <h3 style="margin:0 0 8px 0">New meeting</h3>
-        <div class="grid-1">
-          <div class="row">
-            <label for="meetingTitle">Title</label>
-            <input id="meetingTitle" placeholder="e.g., Friday Hangout" />
-          </div>
-          <div class="row">
-            <label for="venueType">Venue type (optional)</label>
-            <select id="venueType">
-              <option value="">Select a type (optional)</option>
-              <option>Mini Golf</option>
-              <option>Ice Cream</option>
-              <option>Diner</option>
-              <option>Pizza</option>
-              <option>Coffee</option>
-            </select>
-          </div>
-          <div style="display:flex; gap:10px; flex-wrap:wrap;">
-            <button id="createMeeting" class="btn btn-primary" type="button">Create meeting</button>
-            <span id="meetStatus" class="muted"></span>
-          </div>
-          <div id="meetingInfo" class="muted" style="display:none;"></div>
+  <head>
+    <meta charset="utf-8" />
+    <title>Create Meeting & Invite – Middle Ground</title>
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1"
+    />
+    <link
+      rel="stylesheet"
+      href="app.css"
+    />
+  </head>
+  <body>
+    <main class="container">
+      <header class="topbar">
+        <div class="brand">
+          <span
+            class="brand-badge"
+            aria-hidden="true"
+          ></span>
+          <a
+            href="/"
+            class="link-home"
+            >Middle&nbsp;Ground</a
+          >
         </div>
-      </div>
-
-      <div class="card">
-        <h3 style="margin:0 0 8px 0">Send email invitations</h3>
-        <p class="muted" id="inviteHelp">Create a meeting first.</p>
-        <div class="grid-1">
-          <div class="row">
-            <label for="inviteEmail">Invitee email</label>
-            <input id="inviteEmail" type="email" placeholder="friend@example.com" />
-          </div>
-          <div style="display:flex; gap:10px; flex-wrap:wrap;">
-            <button id="sendInvite" class="btn btn-primary" type="button" disabled>Send invite</button>
-            <span id="inviteStatus" class="muted"></span>
-          </div>
-          <div>
-            <div class="muted small" style="margin:10px 0 6px">Invitations sent (this session)</div>
-            <div id="invitedList" class="list"></div>
+        <nav class="nav">
+          <a
+            class="btn btn-ghost"
+            href="/places.html"
+            >Places</a
+          >
+          <span id="auth-inline">
+            <a
+              class="btn btn-ghost"
+              href="/login.html"
+              >Log in</a
+            >
+            <a
+              class="btn btn-primary"
+              href="/signup.html"
+              >Sign up</a
+            >
+          </span>
+        </nav>
+      </header>
+      <section class="grid">
+        <div class="meet-card">
+          <h3>New meeting</h3>
+          <div class="grid-1">
+            <div class="row">
+              <label for="meetingTitle">Title</label>
+              <input
+                id="meetingTitle"
+                placeholder="e.g., Friday Hangout"
+              />
+            </div>
+            <div class="meet-cardLayout">
+              <button
+                id="createMeeting"
+                class="btn btn-primary"
+                type="button"
+              >
+                Create meeting
+              </button>
+              <span
+                id="meetStatus"
+                class="muted"
+              ></span>
+            </div>
+            <div
+              id="meetingInfo"
+              class="muted"
+              style="display: none"
+            ></div>
           </div>
         </div>
-      </div>
 
-      <div class="card" style="grid-column:1/-1;">
-        <h3 style="margin:0 0 8px 0">My invitations</h3>
-        <p class="muted small">These are invites sent to your account email.</p>
-        <div id="myInvites" class="list"></div>
-      </div>
-    </section>
-  </main>
+        <div class="meet-card">
+          <h3>Send email invitations</h3>
+          <p
+            class="muted"
+            id="inviteHelp"
+          >
+            Create a meeting first.
+          </p>
+          <div class="grid-1">
+            <div class="row">
+              <label for="inviteEmail">Invitee email</label>
+              <input
+                id="inviteEmail"
+                type="email"
+                placeholder="friend@example.com"
+              />
+            </div>
+            <div class="meet-cardLayout">
+              <button
+                id="sendInvite"
+                class="btn btn-primary"
+                type="button"
+                disabled
+              >
+                Send invite
+              </button>
+              <span
+                id="inviteStatus"
+                class="muted"
+              ></span>
+            </div>
+            <div>
+              <div
+                class="muted small"
+                style="margin: 10px 0 6px"
+              >
+                Invitations sent (this session)
+              </div>
+              <div
+                id="invitedList"
+                class="list"
+              ></div>
+            </div>
+          </div>
+        </div>
 
-  <script src="/meet.js" defer></script>
+        <div class="meet-card invitations">
+          <h3>My invitations</h3>
+          <p class="muted small">
+            These are invites sent to your account email.
+          </p>
+          <div
+            id="myInvites"
+            class="list"
+          ></div>
+        </div>
+      </section>
+    </main>
 
-  <script>
-    async function tryJson(res){
-      const ct = res.headers.get('content-type') || '';
-      if (!ct.includes('application/json')) return null;
-      try { return await res.json(); } catch { return null; }
-    }
-    (async function renderAuth(){
-      try{
-        const res = await fetch('/api/me', { credentials: 'same-origin' });
-        const data = await tryJson(res);
-        if (!data || !data.user) return;
-        const username = data.user.username;
-        const authInline = document.getElementById('auth-inline');
-        if (authInline){
-          authInline.innerHTML = `
+    <script
+      src="/meet.js"
+      defer
+    ></script>
+
+    <script>
+      async function tryJson(res) {
+        const ct = res.headers.get("content-type") || "";
+        if (!ct.includes("application/json")) return null;
+        try {
+          return await res.json();
+        } catch {
+          return null;
+        }
+      }
+      (async function renderAuth() {
+        try {
+          const res = await fetch("/api/me", { credentials: "same-origin" });
+          const data = await tryJson(res);
+          if (!data || !data.user) return;
+          const username = data.user.username;
+          const authInline = document.getElementById("auth-inline");
+          if (authInline) {
+            authInline.innerHTML = `
             <span style="opacity:.85; margin-right:.25rem;">Signed in as <b>${username}</b></span>
             <button class="btn btn-ghost" id="logoutBtnTop">Log out</button>
           `;
-          document.getElementById('logoutBtnTop')?.addEventListener('click', async () => {
-            await fetch('/api/logout', { method:'POST', credentials:'same-origin' });
-            location.reload();
-          });
-        }
-      }catch{}
-    })();
-  </script>
-</body>
+            document
+              .getElementById("logoutBtnTop")
+              ?.addEventListener("click", async () => {
+                await fetch("/api/logout", {
+                  method: "POST",
+                  credentials: "same-origin",
+                });
+                location.reload();
+              });
+          }
+        } catch {}
+      })();
+    </script>
+  </body>
 </html>
