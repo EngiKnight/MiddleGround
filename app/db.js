@@ -8,9 +8,7 @@ const isLocal = () => {
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  // Most cloud Postgres providers (Neon, etc.) require SSL.
-  // Local Postgres typically doesn't use SSL.
-  ssl: isLocal() ? false : { rejectUnauthorized: false },
+  ssl: isLocal() ? false : { rejectUnauthorized: false }, // Neon requires SSL
 });
 
 module.exports = {

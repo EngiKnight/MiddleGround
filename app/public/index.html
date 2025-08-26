@@ -1,162 +1,84 @@
+<!-- app/public/index.html -->
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1"
-    />
-    <title>Middle Ground</title>
-    <link
-      rel="stylesheet"
-      href="app.css"
-    />
-  </head>
-  <body>
-    <main class="container">
-      <!-- Top bar -->
-      <header class="topbar">
-        <div class="brand">
-          <span
-            class="brand-badge"
-            aria-hidden="true"
-          ></span>
-          <span>Middle&nbsp;Ground</span>
-        </div>
-        <nav class="nav">
-          <a
-            class="btn btn-ghost"
-            href="/places.html"
-            >Choose a Location</a
-          >
-          <a
-            class="btn btn-ghost"
-            href="/meet.html"
-            >Meet</a
-          >
-          <!-- Fallback auth links (will be replaced if logged in) -->
-          <span id="auth-inline">
-            <a
-              class="btn btn-ghost"
-              href="/login.html"
-              >Log in</a
-            >
-            <a
-              class="btn btn-primary"
-              href="/signup.html"
-              >Sign up</a
-            >
-          </span>
-        </nav>
-      </header>
+<head>
+  <meta charset="UTF-8" />
+  <title>MiddleGround • Create a meeting</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link href="/app.css" rel="stylesheet" />
+</head>
+<body>
+  <main class="container">
+    <h1>Create a Meeting</h1>
+    <form id="create-form" class="card">
+      <label>
+        Meeting title
+        <input name="title" placeholder="Brunch with friends" required />
+      </label>
+      <div class="grid-2">
+        <label>
+          Your name
+          <input name="ownerName" placeholder="Alex" />
+        </label>
+        <label>
+          Your email
+          <input name="ownerEmail" type="email" placeholder="alex@example.com" required />
+        </label>
+      </div>
+      <div class="grid-2">
+        <label>
+          Venue type
+          <select name="venueType">
+            <option value="restaurant">Restaurant</option>
+            <option value="cafe">Cafe</option>
+            <option value="coffee">Coffee</option>
+            <option value="park">Park</option>
+            <option value="museum">Museum</option>
+            <option value="library">Library</option>
+            <option value="bar">Bar</option>
+          </select>
+        </label>
+        <label>
+          Search radius (meters)
+          <input name="radiusMeters" type="number" min="500" max="10000" value="3000" />
+        </label>
+      </div>
+      <label>
+        Invite by email (comma or space-separated)
+        <textarea name="invitees" rows="3" placeholder="sam@example.com, taylor@example.com"></textarea>
+      </label>
+      <button class="btn" type="submit">Create & send invites</button>
+    </form>
 
-      <!-- Hero -->
-      <section class="landing-hero">
-        <div>
-          <h1 class="title">Middle Ground</h1>
-          <p class="tagline">Find the most fair spot to meet—automatically.</p>
-        </div>
+    <div id="result" class="card" style="display:none"></div>
+  </main>
 
-        <div
-          class="actions"
-          id="auth-cta"
-        >
-          <!-- Default CTAs; replaced when logged in -->
-          <a
-            class="btn btn-primary"
-            href="/signup.html"
-            >Get Started</a
-          >
-          <a
-            class="btn btn-ghost"
-            href="/login.html"
-            >I already have an account</a
-          >
-        </div>
+  <script>
+    const form = document.getElementById('create-form');
+    const result = document.getElementById('result');
 
-        <!-- Project description -->
-        <div class="landing-card">
-          <h2>What it does</h2>
-          <p>
-            This project lets people create meetings at a central location based
-            on participants’ locations. Users enter their location, create
-            meetings, and invite others. The creator picks a venue type, and
-            participants get email notifications. After locations are added, the
-            site uses a map API to compute the most central spot and finds the
-            nearest place that matches the selected type.
-          </p>
-        </div>
-      </section>
-
-      <footer class="footer">
-        <div>© <span id="year"></span> Middle Ground</div>
-        <div id="auth-footer"><!-- filled by JS --></div>
-      </footer>
-    </main>
-
-    <script>
-      // Utility: safely parse JSON, tolerate non-JSON responses
-      async function tryJson(res) {
-        const ct = res.headers.get("content-type") || "";
-        if (!ct.includes("application/json")) return null;
-        try {
-          return await res.json();
-        } catch {
-          return null;
-        }
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const payload = Object.fromEntries(new FormData(form).entries());
+      try {
+        const resp = await fetch('/api/meetings', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await resp.json();
+        if (!resp.ok) throw new Error(data.error || 'failed');
+        result.style.display = '';
+        result.innerHTML = `
+          <h2>Invites sent!</h2>
+          <p>Meeting <strong>${data.meeting.title}</strong> created.</p>
+          <p><a href="${data.ownerLink}">Open your meeting page</a> to share your location and see suggestions as people respond.</p>
+        `;
+        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+      } catch (err) {
+        alert(err.message);
       }
-
-      // Set current year
-      document.getElementById("year").textContent = new Date().getFullYear();
-
-      // Auth-aware rendering
-      (async function renderAuth() {
-        try {
-          const res = await fetch("/api/me", { credentials: "same-origin" });
-          const data = await tryJson(res);
-          if (!data || !data.user) return;
-
-          // If logged in, swap CTAs + topbar and add logout
-          const username = data.user.username;
-          const authInline = document.getElementById("auth-inline");
-          const authCta = document.getElementById("auth-cta");
-          const authFooter = document.getElementById("auth-footer");
-
-          if (authInline) {
-            // NOTE: Do NOT inject another "Meet" here; it's already in the nav statically.
-            authInline.innerHTML = `
-              <span style="opacity:.85; margin-right:.25rem;">Signed in as <b>${username}</b></span>
-              <button class="btn btn-ghost" id="logoutBtnTop">Log out</button>
-            `;
-          }
-          if (authCta) {
-            authCta.innerHTML = `
-              <a class="btn btn-primary" href="/meet.html">Plan a meeting</a>
-              <a class="btn btn-ghost" href="/places.html">Places</a>
-              <button class="btn btn-ghost" id="logoutBtnHero">Log out</button>
-            `;
-          }
-          if (authFooter) {
-            authFooter.innerHTML = `Signed in as <b>${username}</b>`;
-          }
-
-          function wireLogout(id) {
-            const btn = document.getElementById(id);
-            if (!btn) return;
-            btn.addEventListener("click", async () => {
-              await fetch("/api/logout", {
-                method: "POST",
-                credentials: "same-origin",
-              });
-              location.reload();
-            });
-          }
-          wireLogout("logoutBtnTop");
-          wireLogout("logoutBtnHero");
-        } catch {
-          // keep defaults if /api/me fails
-        }
-      })();
-    </script>
-  </body>
+    });
+  </script>
+</body>
 </html>
