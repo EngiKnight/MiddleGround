@@ -540,6 +540,7 @@ function findPlaces() {
   let latitude = latInput.value;
   let longitude = longInput.value;
 
+  console.log("Searching places at:", latitude, longitude);
   if (!latitude || !longitude) {
     displayError(
       "Please set a location first by searching for an address or allowing location access."
