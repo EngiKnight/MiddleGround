@@ -2,7 +2,6 @@
   const $ = (id) => document.getElementById(id);
 
   const meetingTitleInput = $("meetingTitle");
-  const venueType = $("venueType");
   const createBtn = $("createMeeting");
   const meetStatus = $("meetStatus");
   const meetingInfo = $("meetingInfo");
@@ -19,7 +18,7 @@
 
   function setMeetingInfo(m) {
     meetingInfo.style.display = "block";
-    meetingInfo.textContent = `Created meeting #${m.id} — "${m.title}" (${m.venue_type || "no venue type"})`;
+    meetingInfo.textContent = `Created meeting #${m.id} — "${m.title}"`;
     inviteHelp.textContent = `Meeting #${m.id} is ready. Invite someone:`;
     sendInvite.disabled = false;
   }
@@ -34,7 +33,11 @@
   async function tryJson(res) {
     const ct = res.headers.get("content-type") || "";
     if (!ct.includes("application/json")) return null;
-    try { return await res.json(); } catch { return null; }
+    try {
+      return await res.json();
+    } catch {
+      return null;
+    }
   }
 
   async function authedUser() {
@@ -42,7 +45,9 @@
       const r = await fetch("/api/me", { credentials: "same-origin" });
       const d = await tryJson(r);
       return d && d.user ? d.user : null;
-    } catch { return null; }
+    } catch {
+      return null;
+    }
   }
 
   if (!createBtn || !sendInvite || !meetingTitleInput) {
@@ -54,14 +59,17 @@
     meetStatus.textContent = "Creating...";
     try {
       const title = meetingTitleInput.value.trim();
-      const body = { title, venueType: venueType?.value || null };
-      if (!body.title) { meetStatus.textContent = "Please enter a title."; return; }
+      const body = { title };
+      if (!body.title) {
+        meetStatus.textContent = "Please enter a title.";
+        return;
+      }
 
       const r = await fetch("/api/meetings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "same-origin",
-        body: JSON.stringify(body)
+        body: JSON.stringify(body),
       });
       const d = await tryJson(r);
       if (!r.ok) throw new Error(d?.error || `HTTP ${r.status}`);
@@ -78,9 +86,15 @@
   });
 
   sendInvite.addEventListener("click", async () => {
-    if (!meetingId) { inviteStatus.textContent = "Create a meeting first."; return; }
+    if (!meetingId) {
+      inviteStatus.textContent = "Create a meeting first.";
+      return;
+    }
     const email = inviteEmail.value.trim();
-    if (!email) { inviteStatus.textContent = "Enter an email."; return; }
+    if (!email) {
+      inviteStatus.textContent = "Enter an email.";
+      return;
+    }
 
     inviteStatus.textContent = "Sending...";
     try {
@@ -88,7 +102,7 @@
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "same-origin",
-        body: JSON.stringify({ email })
+        body: JSON.stringify({ email }),
       });
       const d = await tryJson(r);
       if (!r.ok) throw new Error(d?.error || `HTTP ${r.status}`);
@@ -107,7 +121,9 @@
   async function loadMyInvites() {
     myInvites.innerHTML = "";
     try {
-      const r = await fetch("/api/my/invitations", { credentials: "same-origin" });
+      const r = await fetch("/api/my/invitations", {
+        credentials: "same-origin",
+      });
       const d = await tryJson(r);
       if (!r.ok) throw new Error(d?.error || `HTTP ${r.status}`);
 
@@ -116,7 +132,7 @@
         myInvites.innerHTML = `<div class="muted">No invitations yet.</div>`;
         return;
       }
-      list.forEach(inv => {
+      list.forEach((inv) => {
         const el = document.createElement("div");
         el.className = "pill";
         const when = new Date(inv.sent_at).toLocaleString();
@@ -134,7 +150,7 @@
     }
   }
 
-  (async function init(){
+  (async function init() {
     const u = await authedUser();
     if (!u) {
       meetStatus.textContent = "Please log in to create a meeting.";
