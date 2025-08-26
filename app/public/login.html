@@ -57,7 +57,13 @@
         err.textContent = (data && data.error) || 'Login failed';
         return;
       }
-      location.href = '/';
+      const redirect = await fetch("/api/redirect");
+      let url = null;
+      try {
+        urlObj = await redirect.json();
+        url = urlObj["url"]; 
+      } catch {}
+      location.href = url;
     });
   </script>
 </body>
