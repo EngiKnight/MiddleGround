@@ -87,8 +87,8 @@
             on participants’ locations. Users enter their location, create
             meetings, and invite others. The creator picks a venue type, and
             participants get email notifications. After locations are added, the
-            site uses a map API to compute the most central spot and finds the
-            nearest place that matches the selected type.
+            site computes the most central spot and finds the nearest place that
+            matches the selected type.
           </p>
         </div>
       </section>
@@ -128,7 +128,6 @@
           const authFooter = document.getElementById("auth-footer");
 
           if (authInline) {
-            // NOTE: Do NOT inject another "Meet" here; it's already in the nav statically.
             authInline.innerHTML = `
               <span style="opacity:.85; margin-right:.25rem;">Signed in as <b>${username}</b></span>
               <button class="btn btn-ghost" id="logoutBtnTop">Log out</button>
@@ -136,7 +135,7 @@
           }
           if (authCta) {
             authCta.innerHTML = `
-              <a class="btn btn-primary" href="/meet.html">Plan a meeting</a>
+              <a class="btn btn-primary" href="/create.html">Plan a meeting</a>
               <a class="btn btn-ghost" href="/places.html">Places</a>
               <button class="btn btn-ghost" id="logoutBtnHero">Log out</button>
             `;

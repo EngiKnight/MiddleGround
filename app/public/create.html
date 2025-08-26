@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Middle Ground • Create a Meeting</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link href="/app.css" rel="stylesheet" />
+</head>
+<body>
+  <main class="container">
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-badge" aria-hidden="true"></span>
+        <a href="/" class="link" style="text-decoration:none;color:inherit;"><span>Middle&nbsp;Ground</span></a>
+      </div>
+      <nav class="nav">
+        <a class="btn btn-ghost" href="/places.html">Choose a Location</a>
+        <a class="btn btn-ghost" href="/meet.html">Meet</a>
+      </nav>
+    </header>
+
+    <h1>Create a Meeting</h1>
+    <form id="create-form" class="card">
+      <label>
+        Meeting title
+        <input name="title" placeholder="Brunch with friends" required />
+      </label>
+      <div class="grid-2">
+        <label>
+          Your name
+          <input name="ownerName" placeholder="Alex" />
+        </label>
+        <label>
+          Your email
+          <input name="ownerEmail" type="email" placeholder="alex@example.com" required />
+        </label>
+      </div>
+      <div class="grid-2">
+        <label>
+          Venue type
+          <select name="venueType">
+            <option value="restaurant">Restaurant</option>
+            <option value="cafe">Cafe</option>
+            <option value="coffee">Coffee</option>
+            <option value="park">Park</option>
+            <option value="museum">Museum</option>
+            <option value="library">Library</option>
+            <option value="bar">Bar</option>
+          </select>
+        </label>
+        <label>
+          Search radius (meters)
+          <input name="radiusMeters" type="number" min="500" max="10000" value="3000" />
+        </label>
+      </div>
+      <label>
+        Invite by email (comma or space-separated)
+        <textarea name="invitees" rows="3" placeholder="sam@example.com, taylor@example.com"></textarea>
+      </label>
+      <button class="btn" type="submit">Create & send invites</button>
+    </form>
+
+    <div id="result" class="card" style="display:none"></div>
+  </main>
+
+  <script>
+    const form = document.getElementById('create-form');
+    const result = document.getElementById('result');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const payload = Object.fromEntries(new FormData(form).entries());
+      try {
+        const resp = await fetch('/api/meetings', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await resp.json();
+        if (!resp.ok) throw new Error(data.error || 'failed');
+        result.style.display = '';
+        result.innerHTML = `
+          <h2>Invites sent!</h2>
+          <p>Meeting <strong>${data.meeting.title}</strong> created.</p>
+          <p><a href="${data.ownerLink}">Open your meeting page</a> to share your location and see suggestions as people respond.</p>
+        `;
+        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+      } catch (err) {
+        alert(err.message);
+      }
+    });
+  </script>
+</body>
+</html>

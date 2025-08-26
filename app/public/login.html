@@ -1,171 +1,64 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1"
-    />
-    <title>Login – Middle Ground</title>
-    <link
-      rel="stylesheet"
-      href="app.css"
-    />
-  </head>
-  <body>
-    <main class="container">
-      <!-- Top bar -->
-      <header class="topbar">
-        <div class="brand">
-          <span
-            class="brand-badge"
-            aria-hidden="true"
-          ></span>
-          <a
-            href="/"
-            class="link-home"
-            >Middle&nbsp;Ground</a
-          >
-        </div>
-        <nav class="nav">
-          <a
-            class="btn btn-ghost"
-            href="places.html"
-            >Choose a Location</a
-          >
-          <!-- default auth links; replaced if logged in -->
-          <span id="auth-inline">
-            <a
-              class="btn btn-ghost"
-              href="/login.html"
-              >Log in</a
-            >
-            <a
-              class="btn btn-primary"
-              href="/signup.html"
-              >Sign up</a
-            >
-          </span>
-        </nav>
-      </header>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Middle Ground • Log in</title>
+  <link href="/app.css" rel="stylesheet" />
+</head>
+<body>
+  <main class="container">
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-badge" aria-hidden="true"></span>
+        <a href="/" class="link" style="text-decoration:none;color:inherit;"><span>Middle&nbsp;Ground</span></a>
+      </div>
+      <nav class="nav">
+        <a class="btn btn-ghost" href="/signup.html">Create account</a>
+      </nav>
+    </header>
 
-      <!-- Centered card -->
-      <section class="main">
-        <div class="login-card">
-          <h1>Welcome back</h1>
-          <p>Log in to plan a fair meet-up spot with your crew.</p>
-          <form
-            id="loginForm"
-            autocomplete="on"
-          >
-            <div class="row">
-              <label for="username">Username</label>
-              <input
-                id="username"
-                name="username"
-                required
-              />
-            </div>
-            <div class="row">
-              <label for="password">Password</label>
-              <input
-                id="password"
-                name="password"
-                type="password"
-                required
-              />
-            </div>
+    <h1>Welcome back</h1>
+    <p>Log in to plan a fair meet-up spot with your crew.</p>
 
-            <div class="actions">
-              <button
-                class="btn btn-primary"
-                type="submit"
-              >
-                Log in
-              </button>
-              <a
-                class="btn btn-ghost"
-                href="/signup.html"
-                >Create account</a
-              >
-            </div>
+    <form id="loginForm" class="card">
+      <label>Email or Username
+        <input type="text" name="identifier" required placeholder="you@example.com or yourname" />
+      </label>
+      <label>Password
+        <input type="password" name="password" required />
+      </label>
+      <div class="actions" style="display:flex;gap:12px;margin-top:8px;">
+        <button class="btn" type="submit">Log in</button>
+        <a class="btn btn-ghost" href="/signup.html">Create account</a>
+      </div>
+      <p id="err" style="color:#f6a6a6;margin-top:10px;"></p>
+      <p style="margin-top:8px;"><a class="link" href="/">&larr; Back to Home</a></p>
+    </form>
+  </main>
 
-            <div
-              class="msg"
-              id="msg"
-            ></div>
-          </form>
+  <script>
+    const form = document.getElementById('loginForm');
+    const err = document.getElementById('err');
 
-          <div class="footer-links">
-            <a href="/">← Back to Home</a>
-          </div>
-        </div>
-      </section>
-    </main>
-
-    <script>
-      // Topbar auth swap (matches index.html behavior)
-      (async function renderAuth() {
-        try {
-          const res = await fetch("/api/me", { credentials: "same-origin" });
-          const ct = res.headers.get("content-type") || "";
-          if (!ct.includes("application/json")) return;
-          const data = await res.json();
-          if (!data || !data.user) return;
-
-          const username = data.user.username;
-          const authInline = document.getElementById("auth-inline");
-          if (authInline) {
-            authInline.innerHTML = `
-            <span style="opacity:.85; margin-right:.25rem;">Signed in as <b>${username}</b></span>
-            <button class="btn btn-ghost" id="logoutBtnTop">Log out</button>
-          `;
-            document
-              .getElementById("logoutBtnTop")
-              ?.addEventListener("click", async () => {
-                await fetch("/api/logout", {
-                  method: "POST",
-                  credentials: "same-origin",
-                });
-                location.href = "/";
-              });
-          }
-        } catch {}
-      })();
-
-      // Robust login handler (tolerates non-JSON error bodies)
-      const form = document.getElementById("loginForm");
-      const msg = document.getElementById("msg");
-
-      async function parseJSONSafe(res) {
-        const text = await res.text();
-        try {
-          return [res.ok, JSON.parse(text)];
-        } catch {
-          return [res.ok, { error: text || res.statusText }];
-        }
-      }
-
-      form.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        msg.textContent = "Logging in...";
-        const data = Object.fromEntries(new FormData(form).entries());
-        try {
-          const res = await fetch("/api/login", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            credentials: "same-origin",
-            body: JSON.stringify(data),
-          });
-          const [ok, json] = await parseJSONSafe(res);
-          if (!ok) throw new Error(json.error || "Login failed");
-          msg.textContent =
-            "Welcome, " + json.user.username + " — redirecting...";
-          setTimeout(() => (window.location.href = "/"), 600);
-        } catch (err) {
-          msg.textContent = err.message;
-        }
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      err.textContent = '';
+      const payload = Object.fromEntries(new FormData(form).entries());
+      const r = await fetch('/api/login', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify(payload),
+        credentials:'same-origin'
       });
-    </script>
-  </body>
+      let data = null;
+      try { data = await r.json(); } catch {}
+      if (!r.ok) {
+        err.textContent = (data && data.error) || 'Login failed';
+        return;
+      }
+      location.href = '/';
+    });
+  </script>
+</body>
 </html>
