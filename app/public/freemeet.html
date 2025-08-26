@@ -17,11 +17,34 @@
       rel="stylesheet"
       href="place.css"
     />
+    <style>
+      /* Custom styles for location markers */
+      .location-marker,
+      .center-marker {
+        background: none !important;
+        border: none !important;
+      }
+
+      .location-popup,
+      .center-popup,
+      .venue-popup {
+        font-size: 12px;
+        line-height: 1.4;
+      }
+
+      .location-popup strong,
+      .center-popup strong,
+      .venue-popup strong {
+        color: #333;
+        font-weight: bold;
+      }
+    </style>
     <script
       src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
       integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
       crossorigin=""
     ></script>
+    <script src="https://unpkg.com/geolib@3.3.4/lib/index.js"></script>
   </head>
   <body>
     <main class="container">
@@ -58,18 +81,61 @@
       <section>
         <!-- Location Information -->
         <div class="location-card">
-          <h3>Current Location</h3>
-          <div class="location-info">
-            <div id="location">Getting location...</div>
+          <h3>Enter up to 6 locations:</h3>
+          <div class="location-form">
+            <p>Location 1:</p>
+            <input
+              type="text"
+              id="location1"
+              placeholder="latitude, longitude
+              (e.g., 39.957582, -75.191870)"
+            />
+            <p>Location 2:</p>
+            <input
+              type="text"
+              id="location2"
+              placeholder="latitude, longitude
+              (e.g., 39.957582, -75.191870)"
+            />
+            <p>Location 3:</p>
+            <input
+              type="text"
+              id="location3"
+              placeholder="latitude, longitude
+              (e.g., 39.957582, -75.191870)"
+            />
+            <p>Location 4:</p>
+            <input
+              type="text"
+              id="location4"
+              placeholder="latitude, longitude
+              (e.g., 39.957582, -75.191870)"
+            />
+            <p>Location 5:</p>
+            <input
+              type="text"
+              id="location5"
+              placeholder="latitude, longitude
+              (e.g., 39.957582, -75.191870)"
+            />
+            <p>Location 6:</p>
+            <input
+              type="text"
+              id="location6"
+              placeholder="latitude, longitude
+              (e.g., 39.957582, -75.191870)"
+            />
           </div>
-          <div class="location-info">
-            <div>Lat: <span id="markerLat">--</span></div>
-            <div>Lon: <span id="markerLon">--</span></div>
-          </div>
+          <button
+            id="calcCenter"
+            class="btn btn-primary"
+          >
+            Calculate centerpoint
+          </button>
         </div>
         <!-- Address Search -->
         <div class="location-card">
-          <h3>Search for a Starting Location</h3>
+          <h3>Search for latitude and longitudes</h3>
           <div class="location-form">
             <div>
               <label for="search">Address or Place Name:</label>
@@ -150,7 +216,7 @@
         ></div>
       </section>
     </main>
-    <script src="places.js"></script>
+    <script src="freemeet.js"></script>
     <script>
       // Helper function to safely parse JSON
       function tryJson(res) {
