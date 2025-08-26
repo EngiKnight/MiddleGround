@@ -1,48 +1,43 @@
 // app/email.js
-// Email sending via Resend (preferred). Fallback logs to console in development.
+const { Resend } = require("resend");
 
-function fromAddress() {
-  return process.env.MAIL_FROM || "MiddleGround <no-reply@middleground.local>";
+const API_KEY = process.env.RESEND_API_KEY || "";
+const FROM = process.env.MAIL_FROM || 'MiddleGround <onboarding@resend.dev>';
+// Set EMAIL_MODE=log to skip sending and just console.log
+const MODE = (process.env.EMAIL_MODE || "").toLowerCase(); // 'log' to disable sending
+
+let resend = null;
+if (API_KEY && MODE !== "log") {
+  try {
+    resend = new Resend(API_KEY);
+  } catch (e) {
+    console.warn("Resend init failed; falling back to log mode.", e?.message || e);
+    resend = null;
+  }
 }
 
-async function sendViaResend({ to, subject, html, text }) {
-  const apiKey = process.env.RESEND_API_KEY;
-  if (!apiKey) throw new Error("RESEND_API_KEY not set");
-  // Use global fetch (Node 18+)
-  const resp = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      from: fromAddress(),
-      to: Array.isArray(to) ? to : [to],
-      subject,
-      html,
-      text,
-    })
-  });
-  if (!resp.ok) {
-    const body = await resp.text();
-    console.error("Resend error:", resp.status, body);
-    throw new Error(`Resend failed: ${resp.status}`);
+async function sendMail({ to, subject, html, text }) {
+  // In dev or if no API key, just log so flow never breaks
+  if (!resend) {
+    console.log("\n--- EMAIL (log mode) ---\nTo:", to, "\nSubject:", subject, "\nText:", text, "\n---\n");
+    return { ok: true, mode: "log" };
   }
-  return true;
-}
-
-async function sendMail(opts) {
-  if (process.env.RESEND_API_KEY) {
-    return sendViaResend(opts);
+  try {
+    const { data, error } = await resend.emails.send({
+      from: FROM, to, subject, html, text
+    });
+    if (error) {
+      console.warn("Resend error:", typeof error === "object" ? JSON.stringify(error) : String(error));
+      // Fallback to log so we don't block the app
+      console.log("\n--- EMAIL (fallback log) ---\nTo:", to, "\nSubject:", subject, "\nText:", text, "\n---\n");
+      return { ok: false, error };
+    }
+    return { ok: true, id: data?.id };
+  } catch (e) {
+    console.warn("Resend exception:", e?.message || e);
+    console.log("\n--- EMAIL (exception fallback log) ---\nTo:", to, "\nSubject:", subject, "\nText:", text, "\n---\n");
+    return { ok: false, error: e };
   }
-  // Fallback: log only
-  console.log("\n--- EMAIL (dev) ---");
-  console.log("From:", fromAddress());
-  console.log("To:", opts.to);
-  console.log("Subject:", opts.subject);
-  console.log("Text:", (opts.text || "").slice(0, 400));
-  console.log("--------------\n");
-  return true;
 }
 
 module.exports = { sendMail };
