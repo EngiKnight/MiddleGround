@@ -1,16 +1,17 @@
 // Script for location selection, combination of Nonatim, Leaflet, and Foursquare API
 
 // DECLARATIONS
+
+// Locations
+let location1 = document.getElementById("location1");
+let location2 = document.getElementById("location2");
+let location3 = document.getElementById("location3");
+let location4 = document.getElementById("location4");
+let location5 = document.getElementById("location5");
+let location6 = document.getElementById("location6");
+
 // Buttons
 let searchButton = document.getElementById("submitAddress");
-
-// Browser geolocation display elements
-let browserLoc = document.getElementById("browserLoc");
-let browserLat = document.getElementById("browserLat");
-let browserLon = document.getElementById("browserLon");
-
-// revSearch input and display elements
-let loc = document.getElementById("location");
 
 // freeSearch input and display elements
 let search = document.getElementById("search");
@@ -19,10 +20,6 @@ let searchResults = document.getElementById("searchResultsContainer");
 
 // Leaflet map div
 let mapContainer = document.getElementById("mapContainer");
-
-// Marker Coords
-let markerLat = document.getElementById("markerLat");
-let markerLon = document.getElementById("markerLon");
 
 // Venue search elements (for integration with Foursquare)
 let latInput = document.getElementById("latitude");
@@ -40,6 +37,12 @@ let currentMarker = null;
 let currentLat = null;
 let currentLon = null;
 let venueMarkersLayer = null; // Layer group for venue markers
+let locationMarkersLayer = null; // Layer group for input location markers
+
+// Elements for displaying location info (may not exist in current HTML)
+let loc = document.getElementById("currentLocation");
+let markerLat = document.getElementById("markerLat");
+let markerLon = document.getElementById("markerLon");
 
 // Function to update venue search coordinates
 function updateVenueSearchCoords() {
@@ -51,75 +54,142 @@ function updateVenueSearchCoords() {
   }
 }
 
-// FUNCTIONS
-// Browser geolocation functions
-function getLocation() {
-  return new Promise((resolve, reject) => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        function (position) {
-          currentLat = position.coords.latitude;
-          currentLon = position.coords.longitude;
-          browserGeoSuccess(position);
-          resolve({ lat: currentLat, lon: currentLon });
-        },
-        function (error) {
-          browserGeoError();
-          console.error("Geolocation error:", error);
-          reject(error);
-        }
-      );
-    } else {
-      const errorMsg = "Geolocation is not supported by this browser.";
-      browserLoc.textContent = "Error: " + errorMsg;
-      reject(new Error(errorMsg));
-    }
+// Function to add markers for original input locations
+function addLocationMarkers(locations) {
+  // Clear existing location markers
+  if (locationMarkersLayer) {
+    locationMarkersLayer.clearLayers();
+  }
+
+  // Create location markers layer if it doesn't exist
+  if (!locationMarkersLayer && map) {
+    locationMarkersLayer = L.layerGroup().addTo(map);
+  }
+
+  // Add markers for each original location
+  locations.forEach((location, index) => {
+    // Create custom icon for input locations (blue color)
+    let locationIcon = L.divIcon({
+      className: "location-marker",
+      html: `<div style="background-color: #4285f4; color: white; width: 24px; height: 24px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3); display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold;">${
+        index + 1
+      }</div>`,
+      iconSize: [24, 24],
+      iconAnchor: [12, 12],
+    });
+
+    // Create marker with popup
+    let marker = L.marker([location.latitude, location.longitude], {
+      icon: locationIcon,
+    });
+
+    // Create popup content
+    let popupContent = `
+      <div class="location-popup">
+        <strong>Location ${index + 1}</strong><br>
+        Latitude: ${location.latitude.toFixed(6)}<br>
+        Longitude: ${location.longitude.toFixed(6)}
+      </div>
+    `;
+
+    marker.bindPopup(popupContent);
+    locationMarkersLayer.addLayer(marker);
   });
 }
 
-function browserGeoSuccess(position) {
-  let lat = position.coords.latitude;
-  let lon = position.coords.longitude;
+// FUNCTIONS
 
-  revSearch(lat, lon)
-    .then((result) => {
-      if (result) {
-        if (browserLoc) {
-          browserLoc.textContent = formatAddress(result);
-        }
-      }
-      if (result.error) {
-        console.log(result);
-        let message = "API Error Message: ";
-        if (result.error.message) {
-          message += result.error.message;
+function calculateCenter() {
+  // Get all location input elements
+  const locationInputs = [
+    location1,
+    location2,
+    location3,
+    location4,
+    location5,
+    location6,
+  ];
+  const validCoords = [];
+
+  // Parse coordinates from each input field
+  locationInputs.forEach((input, index) => {
+    if (input && input.value.trim()) {
+      try {
+        // Remove parentheses and split by comma
+        const cleanValue = input.value.trim().replace(/[()]/g, "");
+        const parts = cleanValue.split(",");
+
+        if (parts.length === 2) {
+          const lat = parseFloat(parts[0].trim());
+          const lon = parseFloat(parts[1].trim());
+
+          // Validate lat/lon ranges
+          if (
+            !isNaN(lat) &&
+            !isNaN(lon) &&
+            lat >= -90 &&
+            lat <= 90 &&
+            lon >= -180 &&
+            lon <= 180
+          ) {
+            validCoords.push({ latitude: lat, longitude: lon });
+          } else {
+            console.log(
+              `Invalid coordinates in location ${index + 1}: ${input.value}`
+            );
+          }
         } else {
-          message = result.error;
+          console.log(
+            `Invalid format in location ${index + 1}: ${
+              input.value
+            }. Expected format: "lat, lon"`
+          );
         }
-        if (browserLoc) {
-          browserLoc.textContent = message;
-        }
+      } catch (error) {
+        console.log(
+          `Error parsing location ${index + 1}: ${input.value}`,
+          error
+        );
       }
-    })
-    .catch((error) => {
-      console.log(error);
-      if (browserLoc) {
-        browserLoc.textContent = "ERROR: Check console for info";
-      }
-    });
-  if (browserLat && browserLon) {
-    browserLat.textContent = `${lat}`;
-    browserLon.textContent = `${lon}`;
+    }
+  });
+
+  // Check if we have at least 2 valid coordinates
+  if (validCoords.length < 2) {
+    alert(
+      'Please enter at least 2 valid locations in the format "latitude, longitude" (e.g., "39.957582, -75.191870")'
+    );
+    return null;
   }
 
-  // Update venue search coordinates
-  updateVenueSearchCoords();
-}
+  // Calculate center using geolib
+  const center = geolib.getCenter(validCoords);
 
-function browserGeoError() {
-  console.error("Error with browser geolocation.");
-}
+  if (center) {
+    console.log(
+      `Calculated center from ${validCoords.length} locations:`,
+      center
+    );
 
+    // Update global coordinates
+    currentLat = center.latitude;
+    currentLon = center.longitude;
+
+    // Generate map at center point
+    genMap(center.latitude, center.longitude);
+
+    // Add markers for original input locations
+    addLocationMarkers(validCoords);
+
+    // Update location display
+    updateLoc(center.latitude, center.longitude);
+
+    return center;
+  } else {
+    alert("Error calculating center point. Please check your coordinates.");
+    return null;
+  }
+}
 /*
 revSearch returns a jsonv2 with the following example format
 
@@ -189,6 +259,9 @@ function genMap(lat, lon) {
 
     // Initialize venue markers layer
     venueMarkersLayer = L.layerGroup().addTo(map);
+
+    // Initialize location markers layer
+    locationMarkersLayer = L.layerGroup().addTo(map);
   } else {
     map.setView([lat, lon], 13);
   }
@@ -198,10 +271,28 @@ function genMap(lat, lon) {
     map.removeLayer(currentMarker);
   }
 
-  // Add new marker
+  // Create custom icon for centerpoint (red color to distinguish from input locations)
+  let centerIcon = L.divIcon({
+    className: "center-marker",
+    html: `<div style="background-color: #ea4335; color: white; width: 30px; height: 30px; border-radius: 50%; border: 3px solid white; box-shadow: 0 3px 6px rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: bold;">★</div>`,
+    iconSize: [30, 30],
+    iconAnchor: [15, 15],
+  });
+
+  // Add centerpoint marker with custom icon
   currentMarker = L.marker([currentLat, currentLon], {
     draggable: true,
+    icon: centerIcon,
   }).addTo(map);
+
+  // Add popup to centerpoint marker
+  currentMarker.bindPopup(`
+    <div class="center-popup">
+      <strong>Centerpoint</strong><br>
+      Latitude: ${currentLat.toFixed(6)}<br>
+      Longitude: ${currentLon.toFixed(6)}
+    </div>
+  `);
 
   // Update coordinate displays
   if (markerLat) markerLat.textContent = currentLat.toFixed(6);
@@ -404,32 +495,12 @@ function clearVenueMarkers() {
   }
 }
 
-// initialize the page after getting coordinates
-async function initializeWithLocation() {
-  try {
-    updateLoc(currentLat, currentLon);
-    genMap(currentLat, currentLon);
-  } catch (error) {
-    console.error("Failed to initialize with location:", error);
+// Function to clear location markers
+function clearLocationMarkers() {
+  if (locationMarkersLayer) {
+    locationMarkersLayer.clearLayers();
   }
 }
-
-// Try to get location on page load
-async function tryAutoLocation() {
-  try {
-    await getLocation();
-    await initializeWithLocation();
-  } catch (error) {
-    console.log("Auto-location failed:", error);
-    if (loc) {
-      loc.textContent =
-        "Location access denied. Please search for a location manually.";
-    }
-  }
-}
-
-// attempt to get browser location
-tryAutoLocation();
 
 // Button clicks
 if (searchButton) {
@@ -448,29 +519,15 @@ if (searchButton) {
       .then((result) => {
         if (result && result.length > 0) {
           for (let i = 0; i < result.length; i++) {
-            let resultButton = document.createElement("button");
-            resultButton.textContent = formatAddress(result[i]);
+            let resultText = document.createElement("p");
+            resultText.textContent = formatAddress(result[i]);
+            resultText.textContent += ` (${result[i].lat}, ${result[i].lon})`;
 
-            resultButton.addEventListener("click", async () => {
-              currentLat = parseFloat(result[i].lat);
-              currentLon = parseFloat(result[i].lon);
-
-              await initializeWithLocation();
-
-              while (searchResults && searchResults.firstChild) {
-                searchResults.removeChild(searchResults.firstChild);
-              }
-
-              // Clear search input
-              if (search) {
-                search.value = "";
-              }
-            });
             if (searchMessage) {
               searchMessage.textContent = "";
             }
             if (searchResults) {
-              searchResults.append(resultButton);
+              searchResults.append(resultText);
             }
           }
         } else if (result && result.error) {
@@ -525,6 +582,9 @@ function clearAllPreviousResults() {
   // Clear venue markers from the map
   clearVenueMarkers();
 
+  // Clear location markers from the map
+  clearLocationMarkers();
+
   // Clear filter content if it exists
   let filterContent = document.getElementById("filterContent");
   if (filterContent) {
@@ -548,7 +608,7 @@ function findPlaces() {
   }
 
   // Clear all previous results and filters
-  clearAllPreviousResults();
+  clearVenueMarkers();
 
   // Show loading message
   let loadingDiv = document.createElement("div");
@@ -932,4 +992,10 @@ function displayError(message) {
 
 if (submitButton) {
   submitButton.addEventListener("click", findPlaces);
+}
+
+// Add event listener for calculate center button
+let calcCenterButton = document.getElementById("calcCenter");
+if (calcCenterButton) {
+  calcCenterButton.addEventListener("click", calculateCenter);
 }
