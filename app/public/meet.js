@@ -1,163 +1,158 @@
-(() => {
-  const $ = (id) => document.getElementById(id);
+// app/public/meet.js
+(function(){
+  const qs = new URLSearchParams(location.search);
+  const meetingId = Number(qs.get('mid'));
+  const token = qs.get('token');
+  const email = qs.get('email') || '';
 
-  const meetingTitleInput = $("meetingTitle");
-  const createBtn = $("createMeeting");
-  const meetStatus = $("meetStatus");
-  const meetingInfo = $("meetingInfo");
+  const titleEl = document.getElementById('title');
+  const partsEl = document.getElementById('participants');
+  const suggEl = document.getElementById('suggestions');
+  const btnGeo = document.getElementById('btn-geo');
+  const btnSubmit = document.getElementById('btn-submit');
+  const latEl = document.getElementById('lat');
+  const lngEl = document.getElementById('lng');
 
-  const inviteEmail = $("inviteEmail");
-  const sendInvite = $("sendInvite");
-  const inviteStatus = $("inviteStatus");
-  const invitedList = $("invitedList");
-
-  const myInvites = $("myInvites");
-  const inviteHelp = $("inviteHelp");
-
-  let meetingId = null;
-
-  function setMeetingInfo(m) {
-    meetingInfo.style.display = "block";
-    meetingInfo.textContent = `Created meeting #${m.id} — "${m.title}"`;
-    inviteHelp.textContent = `Meeting #${m.id} is ready. Invite someone:`;
-    sendInvite.disabled = false;
-  }
-
-  function addInvitedPill(email) {
-    const div = document.createElement("div");
-    div.className = "pill";
-    div.textContent = email;
-    invitedList.prepend(div);
-  }
-
-  async function tryJson(res) {
-    const ct = res.headers.get("content-type") || "";
-    if (!ct.includes("application/json")) return null;
-    try {
-      return await res.json();
-    } catch {
-      return null;
-    }
-  }
-
-  async function authedUser() {
-    try {
-      const r = await fetch("/api/me", { credentials: "same-origin" });
-      const d = await tryJson(r);
-      return d && d.user ? d.user : null;
-    } catch {
-      return null;
-    }
-  }
-
-  if (!createBtn || !sendInvite || !meetingTitleInput) {
-    console.error("[meet] Missing required elements on the page.");
+  if (!meetingId) {
+    document.body.innerHTML = "<main class='container'><p class='card'>Missing meeting id.</p></main>";
     return;
   }
 
-  createBtn.addEventListener("click", async () => {
-    meetStatus.textContent = "Creating...";
-    try {
-      const title = meetingTitleInput.value.trim();
-      const body = { title };
-      if (!body.title) {
-        meetStatus.textContent = "Please enter a title.";
-        return;
-      }
+  async function fetchStatus() {
+    const r = await fetch(`/api/meetings/${meetingId}`);
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.error || 'failed');
+    titleEl.textContent = data.meeting.title;
 
-      const r = await fetch("/api/meetings", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "same-origin",
-        body: JSON.stringify(body),
-      });
-      const d = await tryJson(r);
-      if (!r.ok) throw new Error(d?.error || `HTTP ${r.status}`);
+    // Participants
+    partsEl.innerHTML = '';
+    data.participants.forEach(p => {
+      const li = document.createElement('li');
+      li.textContent = `${p.email} — ${p.role}${p.responded ? ' ✅' : ' ⏳'}`;
+      partsEl.appendChild(li);
+    });
 
-      meetingId = d.meeting.id;
-      setMeetingInfo(d.meeting);
-      meetStatus.textContent = "Meeting created ✔";
-    } catch (e) {
-      console.error("[meet] create error:", e);
-      meetStatus.textContent = e.message.includes("Not authenticated")
-        ? "Please log in first."
-        : `Error: ${e.message}`;
-    }
-  });
-
-  sendInvite.addEventListener("click", async () => {
-    if (!meetingId) {
-      inviteStatus.textContent = "Create a meeting first.";
-      return;
-    }
-    const email = inviteEmail.value.trim();
-    if (!email) {
-      inviteStatus.textContent = "Enter an email.";
+    // Suggestions
+    if (data.meeting.status === 'finalized' && data.meeting.finalized_place_json) {
+      const place = data.meeting.finalized_place_json;
+      suggEl.innerHTML = renderFinalized(place);
       return;
     }
 
-    inviteStatus.textContent = "Sending...";
-    try {
-      const r = await fetch(`/api/meetings/${meetingId}/invite`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "same-origin",
-        body: JSON.stringify({ email }),
-      });
-      const d = await tryJson(r);
-      if (!r.ok) throw new Error(d?.error || `HTTP ${r.status}`);
-
-      inviteStatus.textContent = "Invitation sent ✔";
-      addInvitedPill(email);
-      inviteEmail.value = "";
-    } catch (e) {
-      console.error("[meet] invite error:", e);
-      inviteStatus.textContent = e.message.includes("forbidden")
-        ? "Only the meeting owner can invite."
-        : `Error: ${e.message}`;
-    }
-  });
-
-  async function loadMyInvites() {
-    myInvites.innerHTML = "";
-    try {
-      const r = await fetch("/api/my/invitations", {
-        credentials: "same-origin",
-      });
-      const d = await tryJson(r);
-      if (!r.ok) throw new Error(d?.error || `HTTP ${r.status}`);
-
-      const list = d.invitations || [];
-      if (!list.length) {
-        myInvites.innerHTML = `<div class="muted">No invitations yet.</div>`;
-        return;
-      }
-      list.forEach((inv) => {
-        const el = document.createElement("div");
-        el.className = "pill";
-        const when = new Date(inv.sent_at).toLocaleString();
-        el.innerHTML = `
-          <span><b>${inv.email}</b></span>
-          <span class="small">• meeting #${inv.meeting_id}</span>
-          <span class="small">• ${inv.status}</span>
-          <span class="small">• sent ${when}</span>
-        `;
-        myInvites.appendChild(el);
-      });
-    } catch (e) {
-      console.error("[meet] my invites error:", e);
-      myInvites.innerHTML = `<div class="muted">Error loading invites: ${e.message}</div>`;
+    const sg = await fetch(`/api/meetings/${meetingId}/suggestions`);
+    const sgData = await sg.json();
+    if (sgData.ready) {
+      suggEl.innerHTML = renderSuggestions(sgData.venues, sgData.midpoint);
+    } else {
+      suggEl.textContent = sgData.reason || 'Waiting for participants...';
     }
   }
 
-  (async function init() {
-    const u = await authedUser();
-    if (!u) {
-      meetStatus.textContent = "Please log in to create a meeting.";
-      inviteHelp.textContent = "Log in to send invitations.";
-      createBtn.disabled = true;
-      sendInvite.disabled = true;
+  function renderSuggestions(venues, midpoint) {
+    if (!venues || venues.length === 0) {
+      return `<p>No results yet near the midpoint (${midpoint.lat.toFixed(5)}, ${midpoint.lng.toFixed(5)}).</p>`;
     }
-    await loadMyInvites();
-  })();
+    const items = venues.map(v => `
+      <li class="venue">
+        <div>
+          <strong>${escapeHtml(v.name)}</strong><br/>
+          <small>${escapeHtml(v.location.formatted_address || '')}</small>
+          ${v.distance ? `<div><small>${v.distance}m away</small></div>` : ''}
+        </div>
+        ${token && email ? `<button class="btn btn-ghost" data-finalize='${escapeAttr(JSON.stringify(v))}'>Finalize here</button>` : ''}
+      </li>
+    `).join('');
+
+    return `
+      <p>Midpoint: ${midpoint.lat.toFixed(5)}, ${midpoint.lng.toFixed(5)}</p>
+      <ul class="venues">${items}</ul>
+      <p><small>Only the meeting creator can finalize a venue using their secure invite link.</small></p>
+    `;
+  }
+
+  function renderFinalized(place) {
+    const link = googleMapsPlaceLink(place);
+    return `
+      <p><strong>Finalized spot:</strong> ${escapeHtml(place.name || '')}</p>
+      <p>${escapeHtml(place.location?.formatted_address || '')}</p>
+      ${link ? `<p><a target="_blank" href="${link}">Open in Google Maps</a></p>` : ''}
+    `;
+  }
+
+  // location actions
+  btnGeo?.addEventListener('click', () => {
+    if (!navigator.geolocation) {
+      alert('Geolocation not supported in this browser.');
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        latEl.value = pos.coords.latitude.toFixed(6);
+        lngEl.value = pos.coords.longitude.toFixed(6);
+        submitLocation();
+      },
+      (err) => alert('Unable to get location: ' + err.message),
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  });
+
+  btnSubmit?.addEventListener('click', submitLocation);
+
+  async function submitLocation() {
+    const lat = parseFloat(latEl.value);
+    const lng = parseFloat(lngEl.value);
+    if (!email || !token) {
+      alert('This link is missing your secure token. Use the link from your email.');
+      return;
+    }
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+      alert('Enter valid latitude and longitude.');
+      return;
+    }
+    const resp = await fetch(`/api/meetings/${meetingId}/location`, {
+      method: 'POST',
+      headers: { 'Content-Type':'application/json' },
+      body: JSON.stringify({ email, token, lat, lng })
+    });
+    const data = await resp.json();
+    if (!resp.ok) { alert(data.error || 'Failed to submit location'); return; }
+    await fetchStatus();
+    alert('Location saved!');
+  }
+
+  // Finalize click
+  suggEl.addEventListener('click', async (e) => {
+    const btn = e.target.closest('button[data-finalize]');
+    if (!btn) return;
+    if (!confirm('Finalize this spot for everyone?')) return;
+    const place = JSON.parse(btn.getAttribute('data-finalize'));
+    const resp = await fetch(`/api/meetings/${meetingId}/finalize`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ token, email, place })
+    });
+    const data = await resp.json();
+    if (!resp.ok) { alert(data.error || 'Failed to finalize'); return; }
+    await fetchStatus();
+    alert('Finalized and notified participants!');
+  });
+
+  function googleMapsPlaceLink(place) {
+    try {
+      const name = encodeURIComponent(place.name || '');
+      const addr = encodeURIComponent(place.location?.formatted_address || '');
+      return `https://www.google.com/maps/search/?api=1&query=${name}%20${addr}`;
+    } catch { return null; }
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, (c) => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+  }
+  function escapeAttr(s) {
+    return String(s).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+
+  // initial
+  fetchStatus();
+  setInterval(fetchStatus, 8000);
 })();
