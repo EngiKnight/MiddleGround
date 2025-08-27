@@ -24,6 +24,7 @@ let mapContainer = document.getElementById("mapContainer");
 // Venue search elements (for integration with Foursquare)
 let latInput = document.getElementById("latitude");
 let longInput = document.getElementById("longitude");
+let radiusInput = document.getElementById("radius");
 let submitButton = document.getElementById("submit");
 let infoDiv = document.getElementById("places");
 
@@ -502,6 +503,36 @@ function clearLocationMarkers() {
   }
 }
 
+// Function to find the first empty location input and add coordinates
+function addToFirstEmptyLocation(lat, lon) {
+  const locationInputs = [
+    location1,
+    location2,
+    location3,
+    location4,
+    location5,
+    location6,
+  ];
+
+  // Find the first empty location input
+  for (let i = 0; i < locationInputs.length; i++) {
+    if (
+      locationInputs[i] &&
+      (!locationInputs[i].value || locationInputs[i].value.trim() === "")
+    ) {
+      locationInputs[i].value = `(${lat}, ${lon})`;
+
+      return true; // Successfully added
+    }
+  }
+
+  // If no empty inputs found, show alert
+  alert(
+    "All location inputs are filled. Please clear one first if you want to add this location."
+  );
+  return false;
+}
+
 // Button clicks
 if (searchButton) {
   searchButton.addEventListener("click", () => {
@@ -519,15 +550,52 @@ if (searchButton) {
       .then((result) => {
         if (result && result.length > 0) {
           for (let i = 0; i < result.length; i++) {
+            // Create container for result and button
+            let resultContainer = document.createElement("div");
+            resultContainer.className = "search-result-item";
+
             let resultText = document.createElement("p");
             resultText.textContent = formatAddress(result[i]);
             resultText.textContent += ` (${result[i].lat}, ${result[i].lon})`;
+
+            // Create "Add Location" button
+            let addButton = document.createElement("button");
+            addButton.textContent = "Add Location";
+            addButton.className = "btn btn-ghost";
+
+            // Store coordinates as data attributes
+            addButton.dataset.lat = result[i].lat;
+            addButton.dataset.lon = result[i].lon;
+
+            // Add click event listener
+            addButton.addEventListener("click", (e) => {
+              e.preventDefault();
+              const lat = parseFloat(e.target.dataset.lat);
+              const lon = parseFloat(e.target.dataset.lon);
+
+              if (addToFirstEmptyLocation(lat, lon)) {
+                // Provide visual feedback that location was added
+                addButton.textContent = "Added!";
+                addButton.classList.remove("btn-ghost");
+                addButton.classList.add("btn-primary");
+
+                // Reset button after 2 seconds
+                setTimeout(() => {
+                  addButton.textContent = "Add Location";
+                  addButton.classList.remove("btn-primary");
+                  addButton.classList.add("btn-ghost");
+                }, 2000);
+              }
+            });
+
+            resultContainer.appendChild(resultText);
+            resultContainer.appendChild(addButton);
 
             if (searchMessage) {
               searchMessage.textContent = "";
             }
             if (searchResults) {
-              searchResults.append(resultText);
+              searchResults.append(resultContainer);
             }
           }
         } else if (result && result.error) {
@@ -599,6 +667,7 @@ function findPlaces() {
   console.log("clicked");
   let latitude = latInput.value;
   let longitude = longInput.value;
+  let radius = radiusInput.value || 3000; // Default to 3000 meters if no radius specified
 
   if (!latitude || !longitude) {
     displayError(
@@ -618,7 +687,7 @@ function findPlaces() {
   loadingDiv.appendChild(loadingText);
   infoDiv.appendChild(loadingDiv);
 
-  fetch(`/api/places?lat=${latitude}&long=${longitude}`)
+  fetch(`/api/places?lat=${latitude}&long=${longitude}&radius=${radius}`)
     .then((res) => res.json())
     .then((res) => {
       console.log("API Response:", res);

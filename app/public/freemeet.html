@@ -15,30 +15,8 @@
     />
     <link
       rel="stylesheet"
-      href="place.css"
+      href="app.css"
     />
-    <style>
-      /* Custom styles for location markers */
-      .location-marker,
-      .center-marker {
-        background: none !important;
-        border: none !important;
-      }
-
-      .location-popup,
-      .center-popup,
-      .venue-popup {
-        font-size: 12px;
-        line-height: 1.4;
-      }
-
-      .location-popup strong,
-      .center-popup strong,
-      .venue-popup strong {
-        color: #333;
-        font-weight: bold;
-      }
-    </style>
     <script
       src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
       integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
@@ -80,7 +58,7 @@
       <!-- Main content -->
       <section>
         <!-- Location Information -->
-        <div class="location-card">
+        <div class="card">
           <h3>Enter up to 6 locations:</h3>
           <div class="location-form">
             <p>Location 1:</p>
@@ -134,7 +112,7 @@
           </button>
         </div>
         <!-- Address Search -->
-        <div class="location-card">
+        <div class="card">
           <h3>Search for latitude and longitudes</h3>
           <div class="location-form">
             <div>
@@ -168,7 +146,7 @@
 
         <!-- Venue Search -->
         <div
-          class="location-card"
+          class="card"
           id="venueSearchCard"
         >
           <h3>Find Nearby Venues</h3>
@@ -190,6 +168,19 @@
               <input
                 type="text"
                 id="longitude"
+              />
+            </div>
+
+            <div>
+              <label for="radius">Search Radius (meters):</label>
+              <input
+                type="number"
+                id="radius"
+                value="3000"
+                min="500"
+                max="50000"
+                step="500"
+                placeholder="3000"
               />
             </div>
 

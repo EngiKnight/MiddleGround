@@ -27,6 +27,7 @@ let markerLon = document.getElementById("markerLon");
 // Venue search elements (for integration with Foursquare)
 let latInput = document.getElementById("latitude");
 let longInput = document.getElementById("longitude");
+let radiusInput = document.getElementById("radius");
 let submitButton = document.getElementById("submit");
 let infoDiv = document.getElementById("places");
 
@@ -539,8 +540,8 @@ function findPlaces() {
   console.log("clicked");
   let latitude = latInput.value;
   let longitude = longInput.value;
+  let radius = radiusInput.value || 3000; // Default to 3000 meters if no radius specified
 
-  console.log("Searching places at:", latitude, longitude);
   if (!latitude || !longitude) {
     displayError(
       "Please set a location first by searching for an address or allowing location access."
@@ -559,7 +560,7 @@ function findPlaces() {
   loadingDiv.appendChild(loadingText);
   infoDiv.appendChild(loadingDiv);
 
-  fetch(`/api/places?lat=${latitude}&long=${longitude}`)
+  fetch(`/api/places?lat=${latitude}&long=${longitude}&radius=${radius}`)
     .then((res) => res.json())
     .then((res) => {
       console.log("API Response:", res);

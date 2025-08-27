@@ -158,9 +158,10 @@ app.get("/api/me", async (req, res) => {
 app.get("/api/places", (req, res) => {
   const lat = req.query.lat;
   const long = req.query.long;
+  const radius = req.query.radius || 3000; // Default to 3000 meters if no radius specified
 
   doFetch(
-    `${foursquareUrl}?ll=${lat},${long}&fields=categories,location,name,distance,latitude,longitude,website,tel`,
+    `${foursquareUrl}?ll=${lat},${long}&radius=${radius}&fields=categories,location,name,distance,latitude,longitude,website,tel`,
     options
   )
     .then((info) => info.json())
