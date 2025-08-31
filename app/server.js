@@ -17,12 +17,24 @@ const { sendMail } = require("./email");
 const app = express();
 const hostname = process.env.HOST || "0.0.0.0";
 const port = parseInt(process.env.PORT || "3000", 10);
-const BASE_URL = (process.env.BASE_URL || `http://localhost:${port}`).replace(/\/+$/, "");
+const BASE_URL = (process.env.BASE_URL || `http://localhost:${port}`).replace(
+  /\/+$/,
+  ""
+);
 const isProd = process.env.NODE_ENV === "production";
 
-// --- Foursquare setup ---
-const FOURSQUARE_API_KEY = process.env.FOURSQUARE_API_KEY || "";
-const FOURSQUARE_SEARCH_URL = "https://api.foursquare.com/v3/places/search";
+// ---- Foursquare setup (from your main) ----
+const foursquareUrl = "https://places-api.foursquare.com/places/search";
+const keys = require("../env.json");
+const foursquareKey = keys.foursquare;
+const options = {
+  method: "GET",
+  headers: {
+    accept: "application/json",
+    "X-Places-Api-Version": "2025-06-17",
+    Authorization: `Bearer ${foursquareKey}`,
+  },
+};
 
 // Middleware
 app.use(express.json());
@@ -82,7 +94,9 @@ function isEmail(s) {
 }
 
 async function getUserById(id) {
-  const r = await query("SELECT id, username, email FROM users WHERE id=$1", [id]);
+  const r = await query("SELECT id, username, email FROM users WHERE id=$1", [
+    id,
+  ]);
   return r.rows[0] || null;
 }
 
@@ -90,10 +104,15 @@ app.post("/api/signup", async (req, res) => {
   try {
     const { username, email, password } = req.body;
     if (!username || !email || !password || !isEmail(email)) {
-      return res.status(400).json({ error: "username, valid email, and password are required" });
+      return res
+        .status(400)
+        .json({ error: "username, valid email, and password are required" });
     }
-    const dupe = await query("SELECT 1 FROM users WHERE email=$1", [email.toLowerCase()]);
-    if (dupe.rowCount) return res.status(409).json({ error: "email already registered" });
+    const dupe = await query("SELECT 1 FROM users WHERE email=$1", [
+      email.toLowerCase(),
+    ]);
+    if (dupe.rowCount)
+      return res.status(409).json({ error: "email already registered" });
 
     const hash = await bcrypt.hash(password, 10);
     const ins = await query(
@@ -114,7 +133,9 @@ app.post("/api/login", async (req, res) => {
     const { identifier, email, username, password } = req.body;
     const id = (identifier || email || username || "").trim();
     if (!id || !password) {
-      return res.status(400).json({ error: "valid email/username and password required" });
+      return res
+        .status(400)
+        .json({ error: "valid email/username and password required" });
     }
 
     let r;
@@ -159,10 +180,37 @@ app.get("/api/redirect", requireAuth, async (req, res) => {
   res.json({"url": url});
 })
 
+// ==================== FOURSQUARE ROUTE ====================
+app.get("/api/places", (req, res) => {
+  const lat = req.query.lat;
+  const long = req.query.long;
+  const radius = req.query.radius || 3000; // Default to 3000 meters if no radius specified
+
+  doFetch(
+    `${foursquareUrl}?ll=${lat},${long}&radius=${radius}&fields=categories,location,name,distance,latitude,longitude,website,tel`,
+    options
+  )
+    .then((info) => info.json())
+    .then((info) => res.json(info))
+    .catch((err) => {
+      console.error("Foursquare error:", err);
+      res.status(500).json({ error: "foursquare request failed" });
+    });
+});
+
+// If Node < 18, provide a fetch fallback (also used by Resend in email.js if needed)
+async function doFetch(url, opts) {
+  if (typeof fetch === "function") return fetch(url, opts);
+  const nf = await import("node-fetch"); // npm i node-fetch if needed
+  return nf.default(url, opts);
+}
+
 // ------------------------- MEETING HELPERS -------------------------
 async function findOrCreateUserByEmail(email, username) {
   if (!email) return null;
-  const r = await query("SELECT id FROM users WHERE email=$1", [email.toLowerCase()]);
+  const r = await query("SELECT id FROM users WHERE email=$1", [
+    email.toLowerCase(),
+  ]);
   if (r.rows[0]) return r.rows[0];
   const uname = username || email.split("@")[0];
   const pass = await bcrypt.hash(crypto.randomBytes(16).toString("hex"), 10);
@@ -193,7 +241,9 @@ const VENUE_QUERIES = {
 };
 function venueQueryFor(type) {
   if (!type) return VENUE_QUERIES.default;
-  const key = String(type || "").toLowerCase().trim();
+  const key = String(type || "")
+    .toLowerCase()
+    .trim();
   return VENUE_QUERIES[key] || key || VENUE_QUERIES.default;
 }
 
@@ -239,7 +289,9 @@ function googleMapsPlaceLinkFromFoursquare(place) {
   }
 }
 function computeGeographicMidpoint(points) {
-  let x = 0, y = 0, z = 0;
+  let x = 0,
+    y = 0,
+    z = 0;
   for (const p of points) {
     const lat = (p.lat * Math.PI) / 180;
     const lon = (p.lng * Math.PI) / 180;
@@ -247,14 +299,22 @@ function computeGeographicMidpoint(points) {
     y += Math.cos(lat) * Math.sin(lon);
     z += Math.sin(lat);
   }
-  x /= points.length; y /= points.length; z /= points.length;
+  x /= points.length;
+  y /= points.length;
+  z /= points.length;
   const lon = Math.atan2(y, x);
   const hyp = Math.sqrt(x * x + y * y);
   const lat = Math.atan2(z, hyp);
   return { lat: (lat * 180) / Math.PI, lng: (lon * 180) / Math.PI };
 }
 function escapeHtml(s) {
-  return String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  return String(s).replace(
+    /[&<>"']/g,
+    (c) =>
+      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[
+        c
+      ]
+  );
 }
 
 // ------------------------- MEETING ROUTES -------------------------
@@ -262,9 +322,12 @@ function escapeHtml(s) {
 // Create meeting + invites (email sending is non-blocking; won't 500 on email issues)
 app.post("/api/meetings", async (req, res) => {
   try {
-    const { title, ownerName, ownerEmail, venueType, radiusMeters, invitees } = req.body;
+    const { title, ownerName, ownerEmail, venueType, radiusMeters, invitees } =
+      req.body;
     if (!title || !ownerEmail || !isEmail(ownerEmail)) {
-      return res.status(400).json({ error: "title and valid ownerEmail required" });
+      return res
+        .status(400)
+        .json({ error: "title and valid ownerEmail required" });
     }
     const radius = parseInt(radiusMeters || "3000", 10);
     const owner = await findOrCreateUserByEmail(ownerEmail, ownerName);
@@ -283,7 +346,10 @@ app.post("/api/meetings", async (req, res) => {
       .map((e) => e.trim())
       .filter((e) => e && isEmail(e));
 
-    const all = [ownerEmail.toLowerCase(), ...emails.map((e) => e.toLowerCase())];
+    const all = [
+      ownerEmail.toLowerCase(),
+      ...emails.map((e) => e.toLowerCase()),
+    ];
 
     const insertedInvites = [];
     for (let i = 0; i < all.length; i++) {
@@ -364,7 +430,9 @@ app.get("/api/meetings/:id", async (req, res) => {
 
     let midpoint = null;
     if (locs.rows.length >= 2) {
-      midpoint = computeGeographicMidpoint(locs.rows.map((r) => ({ lat: r.lat, lng: r.lng })));
+      midpoint = computeGeographicMidpoint(
+        locs.rows.map((r) => ({ lat: r.lat, lng: r.lng }))
+      );
     }
 
     res.json({ meeting, participants, locations: locs.rows, midpoint });
@@ -379,15 +447,22 @@ app.post("/api/meetings/:id/location", async (req, res) => {
   try {
     const id = parseInt(req.params.id, 10);
     const { email, token, lat, lng } = req.body;
-    if (!email || !token || typeof lat === "undefined" || typeof lng === "undefined") {
+    if (
+      !email ||
+      !token ||
+      typeof lat === "undefined" ||
+      typeof lng === "undefined"
+    ) {
       return res.status(400).json({ error: "email, token, lat, lng required" });
     }
     const inv = await query(
       `SELECT id, status FROM invitations WHERE meeting_id=$1 AND email=$2 AND token=$3`,
       [id, email.toLowerCase(), token]
     );
-    if (!inv.rows[0]) return res.status(403).json({ error: "invalid invitation token" });
-    if (inv.rows[0].status === "expired") return res.status(403).json({ error: "invitation expired" });
+    if (!inv.rows[0])
+      return res.status(403).json({ error: "invalid invitation token" });
+    if (inv.rows[0].status === "expired")
+      return res.status(403).json({ error: "invitation expired" });
 
     await query(
       `INSERT INTO meeting_locations (meeting_id, email, lat, lng)
@@ -422,11 +497,21 @@ app.get("/api/meetings/:id/suggestions", async (req, res) => {
     if (!m.rows[0]) return res.status(404).json({ error: "not found" });
     const meeting = m.rows[0];
 
-    const locs = await query(`SELECT lat, lng FROM meeting_locations WHERE meeting_id=$1`, [id]);
-    if (locs.rows.length < 2) return res.json({ ready: false, reason: "need at least two locations" });
+    const locs = await query(
+      `SELECT lat, lng FROM meeting_locations WHERE meeting_id=$1`,
+      [id]
+    );
+    if (locs.rows.length < 2)
+      return res.json({ ready: false, reason: "need at least two locations" });
 
-    const midpoint = computeGeographicMidpoint(locs.rows.map((r) => ({ lat: r.lat, lng: r.lng })));
-    const venues = await searchFoursquare(midpoint, meeting.venue_type, meeting.radius_meters || 3000);
+    const midpoint = computeGeographicMidpoint(
+      locs.rows.map((r) => ({ lat: r.lat, lng: r.lng }))
+    );
+    const venues = await searchFoursquare(
+      midpoint,
+      meeting.venue_type,
+      meeting.radius_meters || 3000
+    );
     res.json({ ready: true, midpoint, venues });
   } catch (e) {
     console.error(e);
@@ -439,14 +524,16 @@ app.post("/api/meetings/:id/finalize", async (req, res) => {
   try {
     const id = parseInt(req.params.id, 10);
     const { token, email, place } = req.body;
-    if (!token || !email || !place) return res.status(400).json({ error: "token, email, place required" });
+    if (!token || !email || !place)
+      return res.status(400).json({ error: "token, email, place required" });
 
     const inv = await query(
       `SELECT role FROM invitations WHERE meeting_id=$1 AND email=$2 AND token=$3`,
       [id, email.toLowerCase(), token]
     );
     if (!inv.rows[0]) return res.status(403).json({ error: "invalid token" });
-    if (inv.rows[0].role !== "owner") return res.status(403).json({ error: "only owner can finalize" });
+    if (inv.rows[0].role !== "owner")
+      return res.status(403).json({ error: "only owner can finalize" });
 
     const updated = await query(
       `UPDATE meetings
@@ -458,7 +545,10 @@ app.post("/api/meetings/:id/finalize", async (req, res) => {
     );
     const meeting = updated.rows[0];
 
-    const parts = await query(`SELECT email FROM invitations WHERE meeting_id=$1`, [id]);
+    const parts = await query(
+      `SELECT email FROM invitations WHERE meeting_id=$1`,
+      [id]
+    );
     const mapLink = googleMapsPlaceLinkFromFoursquare(place);
 
     // Try to email everyone; log failures but don't fail the API
@@ -476,7 +566,9 @@ app.post("/api/meetings/:id/finalize", async (req, res) => {
               <p>Details: <a href="${BASE_URL}/meet.html?mid=${meeting.id}">${BASE_URL}/meet.html?mid=${meeting.id}</a></p>
             `,
             text: `Finalized: ${meeting.title}\n${place.name}\n${place.location?.formatted_address || ""}\n${mapLink || ""}`,
-          }).catch((e) => console.warn("Finalize email failed for", r.email, e?.message || e))
+          }).catch((e) =>
+            console.warn("Finalize email failed for", r.email, e?.message || e)
+          )
         )
       );
     } catch (e) {
@@ -498,7 +590,11 @@ app.listen(port, hostname, () => {
   const openOnStart = (process.env.OPEN_BROWSER || "1") !== "0";
   if (!isProd && openOnStart) {
     const cmd =
-      process.platform === "win32" ? "start" : process.platform === "darwin" ? "open" : "xdg-open";
+      process.platform === "win32"
+        ? "start"
+        : process.platform === "darwin"
+          ? "open"
+          : "xdg-open";
     try {
       child_process.exec(`${cmd} "${localUrl}/index.html"`);
     } catch {}
