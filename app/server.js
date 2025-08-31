@@ -147,7 +147,7 @@ app.post("/api/logout", requireAuth, async (req, res) => {
   req.session.destroy(() => res.json({ ok: true }));
 });
 
-app.get("/api/me", requireAuth, async (req, res) => {
+app.get("/api/me", async (req, res) => {
   if (!req.session.userId) return res.json({ user: null });
   const u = await getUserById(req.session.userId);
   res.json({ user: u || null });
@@ -155,7 +155,6 @@ app.get("/api/me", requireAuth, async (req, res) => {
 
 app.get("/api/redirect", requireAuth, async (req, res) => {
   const url = req.session.returnTo || "/";
-  console.log(req.session.returnTo);
   req.session.returnTo = "";
   res.json({"url": url});
 })
