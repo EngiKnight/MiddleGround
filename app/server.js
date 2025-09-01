@@ -178,7 +178,7 @@ app.get("/api/redirect", requireAuth, async (req, res) => {
   const url = req.session.returnTo || "/";
   req.session.returnTo = "";
   res.json({"url": url});
-})
+});
 
 // ==================== FOURSQUARE ROUTE ====================
 app.get("/api/places", (req, res) => {
