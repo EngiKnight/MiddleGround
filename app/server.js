@@ -59,11 +59,31 @@ app.use(
   })
 );
 
+app.get("/meet.html", requireAuth, (req, res, next) => {
+  next();
+});
+
+app.get("/create.html", requireAuth, (req, res, next) => {
+  next();
+});
+
+app.get("/places.html", requireAuth, (req, res, next) => {
+  next();
+});
+
 // Static & root
 app.use(express.static(path.join(__dirname, "public")));
 app.get("/", (_req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
+
+function requireAuth(req, res, next) {
+  if (!req.session.userId) {
+    req.session.returnTo = req.originalUrl;
+    return res.redirect("/login.html");
+  }
+  next();
+}
 
 // Health
 app.get("/healthz", (_req, res) => res.json({ ok: true }));
@@ -144,7 +164,7 @@ app.post("/api/login", async (req, res) => {
   }
 });
 
-app.post("/api/logout", async (req, res) => {
+app.post("/api/logout", requireAuth, async (req, res) => {
   req.session.destroy(() => res.json({ ok: true }));
 });
 
@@ -152,6 +172,12 @@ app.get("/api/me", async (req, res) => {
   if (!req.session.userId) return res.json({ user: null });
   const u = await getUserById(req.session.userId);
   res.json({ user: u || null });
+});
+
+app.get("/api/redirect", requireAuth, async (req, res) => {
+  const url = req.session.returnTo || "/";
+  req.session.returnTo = "";
+  res.json({"url": url});
 });
 
 // ==================== FOURSQUARE ROUTE ====================
