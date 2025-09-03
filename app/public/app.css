@@ -151,6 +151,10 @@ textarea {
   color: var(--text);
 }
 
+.time-input {
+  width: auto;
+}
+
 /* ---------- Landing page specifics ---------- */
 .landing-hero {
   margin-top: 6px;

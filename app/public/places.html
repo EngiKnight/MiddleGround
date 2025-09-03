@@ -97,68 +97,29 @@
         </div>
         <!-- Map -->
         <div id="mapContainer"></div>
-
-        <!-- Venue Search -->
-        <div
-          class="card"
-          id="venueSearchCard"
-        >
-          <h3>Find Nearby Venues</h3>
-          <p>
-            Find all venues near your current location and filter by category:
-          </p>
-
-          <div class="venue-form">
+        <!-- Meeting Time -->
+        <div class="card">
+          <h3>Preferred Meeting Time</h3>
+          <div class="location-form">
             <div>
-              <label for="latitude">Latitude:</label>
-              <input
-                type="text"
-                id="latitude"
-              />
-            </div>
-
-            <div>
-              <label for="longitude">Longitude:</label>
-              <input
-                type="text"
-                id="longitude"
-              />
-            </div>
-
-            <div>
-              <label for="radius">Search Radius (meters):</label>
-              <input
-                type="number"
-                id="radius"
-                value="3000"
-                min="500"
-                max="50000"
-                step="500"
-                placeholder="3000"
-              />
-            </div>
-
-            <div class="inputGrid">
-              <button
-                id="submit"
-                class="btn btn-primary"
+              <label for="meetTime"
+                >Enter a starting time that works for you:</label
               >
-                Find All Places
-              </button>
+              <input
+                type="time"
+                id="meetTime"
+                class="time-input"
+              />
+              </div>
+                <button
+                  id="finalSubmit"
+                  class="btn btn-primary"
+                >
+                  Confirm Location and Time
+                </button>
             </div>
           </div>
-          <!-- Separator line -->
-          <hr />
-
-          <!-- Filter controls will be inserted here -->
-          <div id="filterContent"></div>
         </div>
-
-        <!-- Venue Results -->
-        <div
-          id="places"
-          class="places-grid"
-        ></div>
       </section>
     </main>
     <script src="places.js"></script>
