@@ -247,37 +247,50 @@ function venueQueryFor(type) {
   return VENUE_QUERIES[key] || key || VENUE_QUERIES.default;
 }
 
+// use the env.json-backed values already defined above
 async function searchFoursquare({ lat, lng }, venueType, radiusMeters) {
-  if (!FOURSQUARE_API_KEY) return [];
-  const url = new URL(FOURSQUARE_SEARCH_URL);
+  if (!foursquareKey) return [];
+
+  const url = new URL(foursquareUrl); // "https://places-api.foursquare.com/places/search"
   url.searchParams.set("ll", `${lat},${lng}`);
   url.searchParams.set("radius", String(radiusMeters || 3000));
   url.searchParams.set("query", venueQueryFor(venueType));
   url.searchParams.set("limit", "15");
-  const resp = await fetch(url.toString(), {
-    headers: { Accept: "application/json", Authorization: FOURSQUARE_API_KEY },
+
+  // use the same headers + doFetch fallback you already set up
+  const resp = await doFetch(url.toString(), {
+    method: "GET",
+    headers: {
+      accept: "application/json",
+      "X-Places-Api-Version": "2025-06-17",
+      Authorization: `Bearer ${foursquareKey}`,
+    },
   });
+
   if (!resp.ok) {
     console.error("Foursquare", resp.status, await resp.text());
     return [];
   }
+
   const data = await resp.json();
+  // normalize to your existing shape
   return (data.results || []).map((r) => ({
     id: r.fsq_id,
     name: r.name,
     location: {
-      address: r.location.address,
-      locality: r.location.locality,
-      region: r.location.region,
-      country: r.location.country,
-      formatted_address: r.location.formatted_address,
+      address: r.location?.address,
+      locality: r.location?.locality,
+      region: r.location?.region,
+      country: r.location?.country,
+      formatted_address: r.location?.formatted_address,
       lat: r.geocodes?.main?.latitude,
       lng: r.geocodes?.main?.longitude,
     },
-    categories: r.categories?.map((c) => c.name) || [],
+    categories: (r.categories || []).map((c) => c.name),
     distance: r.distance,
   }));
 }
+
 
 function googleMapsPlaceLinkFromFoursquare(place) {
   try {
@@ -389,10 +402,12 @@ app.post("/api/meetings", async (req, res) => {
     }
 
     res.json({
-      meeting,
-      invites: insertedInvites.map(({ email, role }) => ({ email, role })),
-      ownerLink: `${BASE_URL}/meet.html?mid=${meeting.id}&token=${insertedInvites[0].token}&email=${encodeURIComponent(all[0])}`,
-    });
+  meeting,
+  invites: insertedInvites.map(({ email, role }) => ({ email, role })),
+  // correct template interpolation for token:
+  ownerLink: `${BASE_URL}/meet.html?mid=${meeting.id}&token=${insertedInvites[0].token}&email=${encodeURIComponent(all[0])}`,
+});
+
   } catch (e) {
     console.error(e);
     res.status(500).json({ error: "internal server error" });
