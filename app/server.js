@@ -17,7 +17,7 @@ const { sendMail } = require("./email");
 const app = express();
 const hostname = process.env.HOST || "0.0.0.0";
 const port = parseInt(process.env.PORT || "3000", 10);
-const BASE_URL = (process.env.BASE_URL || `http://localhost:${port}`).replace(
+const BASE_URL = (process.env.BASE_URL || `http://3.21.102.180:${port}`).replace(
   /\/+$/,
   ""
 );
