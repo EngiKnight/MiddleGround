@@ -116,6 +116,7 @@ small {
   justify-content: center;
   border: 1px solid transparent;
   border-radius: 12px;
+  font-size: 14px;
   padding: 10px 14px;
   font-weight: 600;
   cursor: pointer;
@@ -293,7 +294,7 @@ ul {
 
 .search-result-item .btn {
   padding: 6px 12px;
-  font-size: 13px;
+  font-size: 14px;
   white-space: nowrap;
   flex-shrink: 0;
 }
@@ -442,7 +443,7 @@ hr {
 .location-popup,
 .center-popup,
 .venue-popup {
-  font-size: 12px;
+  font-size: 14px;
   line-height: 1.4;
   min-width: 200px;
 }
