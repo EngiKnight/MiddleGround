@@ -106,13 +106,13 @@ app.post("/api/signup", async (req, res) => {
     if (!username || !email || !password || !isEmail(email)) {
       return res
         .status(400)
-        .json({ error: "username, valid email, and password are required" });
+        .json({ error: "Username, valid email, and password are all  required" });
     }
     const dupe = await query("SELECT 1 FROM users WHERE email=$1", [
       email.toLowerCase(),
     ]);
     if (dupe.rowCount)
-      return res.status(409).json({ error: "email already registered" });
+      return res.status(409).json({ error: "Email already registered" });
 
     const hash = await bcrypt.hash(password, 10);
     const ins = await query(
@@ -123,7 +123,7 @@ app.post("/api/signup", async (req, res) => {
     res.json({ user: ins.rows[0] });
   } catch (e) {
     console.error(e);
-    res.status(500).json({ error: "internal server error" });
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
@@ -135,7 +135,7 @@ app.post("/api/login", async (req, res) => {
     if (!id || !password) {
       return res
         .status(400)
-        .json({ error: "valid email/username and password required" });
+        .json({ error: "Valid email/username and password required" });
     }
 
     let r;
@@ -151,10 +151,10 @@ app.post("/api/login", async (req, res) => {
       );
     }
     const u = r.rows[0];
-    if (!u) return res.status(401).json({ error: "invalid credentials" });
+    if (!u) return res.status(401).json({ error: "Invalid credentials" });
 
     const ok = await bcrypt.compare(password, u.password_hash);
-    if (!ok) return res.status(401).json({ error: "invalid credentials" });
+    if (!ok) return res.status(401).json({ error: "Invalid credentials" });
 
     req.session.userId = u.id;
     res.json({ user: { id: u.id, username: u.username, email: u.email } });
@@ -340,7 +340,7 @@ app.post("/api/meetings", async (req, res) => {
     if (!title || !ownerEmail || !isEmail(ownerEmail)) {
       return res
         .status(400)
-        .json({ error: "title and valid ownerEmail required" });
+        .json({ error: "Title and valid ownerEmail required" });
     }
     const radius = parseInt(radiusMeters || "3000", 10);
     const owner = await findOrCreateUserByEmail(ownerEmail, ownerName);
@@ -468,7 +468,7 @@ app.post("/api/meetings/:id/location", async (req, res) => {
       typeof lat === "undefined" ||
       typeof lng === "undefined"
     ) {
-      return res.status(400).json({ error: "email, token, lat, lng required" });
+      return res.status(400).json({ error: "Email, token, lat, lng required" });
     }
     const inv = await query(
       `SELECT id, status FROM invitations WHERE meeting_id=$1 AND email=$2 AND token=$3`,
@@ -540,7 +540,7 @@ app.post("/api/meetings/:id/finalize", async (req, res) => {
     const id = parseInt(req.params.id, 10);
     const { token, email, place } = req.body;
     if (!token || !email || !place)
-      return res.status(400).json({ error: "token, email, place required" });
+      return res.status(400).json({ error: "Token, email, place required" });
 
     const inv = await query(
       `SELECT role FROM invitations WHERE meeting_id=$1 AND email=$2 AND token=$3`,
