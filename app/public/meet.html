@@ -1,44 +1,148 @@
 <!-- app/public/meet.html -->
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>MiddleGround • Meeting</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link href="/app.css" rel="stylesheet" />
-</head>
-<body>
-  <main class="container">
-    <a href="/" class="link">&larr; Create another meeting</a>
-    <h1 id="title">Meeting</h1>
+  <head>
+    <meta charset="UTF-8" />
+    <title>MiddleGround • Meeting</title>
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1"
+    />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+      crossorigin=""
+    />
+    <link
+      href="/app.css"
+      rel="stylesheet"
+    />
+    <script
+      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+      crossorigin=""
+    ></script>
+  </head>
+  <body>
+    <main class="container">
+      <a
+        href="/"
+        class="link"
+        >&larr; Create another meeting</a
+      >
+      <h1 id="title">Meeting</h1>
 
-    <section class="card">
-      <h2>Your location</h2>
-      <p id="loc-status">To participate, share your location. We only store the latitude/longitude for this meeting.</p>
-      <div class="grid-2">
-        <button id="btn-geo" class="btn">Use my current location</button>
-        <div>
-          <label>Or enter manually</label>
-          <div class="grid-2">
-            <input id="lat" placeholder="Latitude" />
-            <input id="lng" placeholder="Longitude" />
-          </div>
-          <button id="btn-submit" class="btn btn-ghost">Submit location</button>
+      <section class="card">
+        <h2>Current Location</h2>
+        <div id="location">Getting location...</div>
+        <div class="location-form">
+          <div>Lat: <span id="markerLat">--</span></div>
+          <div>Lon: <span id="markerLon">--</span></div>
         </div>
-      </div>
-    </section>
+      </section>
 
-    <section class="card">
-      <h2>Participants</h2>
-      <ul id="participants"></ul>
-    </section>
+      <section class="card">
+        <h2>Search for a Location</h2>
+        <div class="location-form">
+          <div>
+            <label for="search">Address or Place Name:</label>
+            <input
+              type="text"
+              id="search"
+              placeholder="e.g., Times Square, New York"
+            />
+          </div>
+          <div>
+            <button
+              id="submitAddress"
+              class="btn btn-primary"
+            >
+              Search
+            </button>
+          </div>
+        </div>
+        <p
+          id="searchMsg"
+          class="msg"
+        ></p>
+        <div
+          id="searchResultsContainer"
+          class="search-results"
+        ></div>
+      </section>
 
-    <section class="card">
-      <h2>Suggestions</h2>
-      <div id="suggestions">Waiting for participants...</div>
-    </section>
-  </main>
+      <!-- Map -->
+      <div id="mapContainer"></div>
 
-  <script src="/meet.js"></script>
-</body>
+      <section class="card">
+        <h2>Your location</h2>
+        <p id="loc-status">
+          To participate, share your location. We only store the
+          latitude/longitude for this meeting.
+        </p>
+        <div class="grid-2">
+          <button
+            id="btn-geo"
+            class="btn"
+          >
+            Use my current location
+          </button>
+          <div>
+            <label>Or enter manually</label>
+            <div class="grid-2">
+              <input
+                id="lat"
+                placeholder="Latitude"
+              />
+              <input
+                id="lng"
+                placeholder="Longitude"
+              />
+            </div>
+            <button
+              id="btn-submit"
+              class="btn btn-ghost"
+            >
+              Submit location
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Preferred Meeting Time</h2>
+        <div class="location-form">
+          <div>
+            <label for="meetTime"
+              >Enter a starting time that works for you:</label
+            >
+            <input
+              type="time"
+              id="meetTime"
+              class="time-input"
+            />
+          </div>
+          <button
+            id="submitTime"
+            class="btn btn-primary"
+          >
+            Confirm Meeting Time
+          </button>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Participants</h2>
+        <ul id="participants"></ul>
+      </section>
+
+      <section class="card">
+        <h2>Suggestions</h2>
+        <div id="suggestions">Waiting for participants...</div>
+      </section>
+    </main>
+
+    <script src="/meet.js"></script>
+  </body>
 </html>
